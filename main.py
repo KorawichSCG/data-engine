@@ -25,6 +25,7 @@ def test_pg_db():
 
 def test_local_csv():
     config01 = ConfigDefaultMapping('catalog_file_customer', 'catalog', 'csv')
+    print("*" * 150)
     print(config01.model.ps_sub_path)
     print(config01.model.ps_file_name)
     print("*" * 150)

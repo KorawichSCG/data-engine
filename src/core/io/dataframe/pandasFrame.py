@@ -43,7 +43,7 @@ class PandasDataFrame:
     @property
     def full_path(self):
         """
-        Local: file://localhost/path/to/table.parquet
+        Local: files://localhost/path/to/table.parquet
         S3: s3://bucket/partition_dir
         """
         return os.path.join(self.server_conn, self.sub_path, f"{self.file_name}.{self.file_type}")

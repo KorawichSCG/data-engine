@@ -81,7 +81,7 @@ class CSVColumn:
 
 class CSVFile:
     """
-    CSV file object
+    CSV files object
     """
     def __init__(
             self,
@@ -106,13 +106,13 @@ class CSVFile:
 
 class LocalCSVFile(CSVFile):
     """
-    Local csv file object
+    Local csv files object
     config
     ------
-        <file-alias-name>:
+        <files-alias-name>:
             type: io.datasets.LocalCSVFile
             properties:
-                catalog_name: <file-name>
+                catalog_name: <files-name>
                 schemas:
                     (i)   <column-name>:
                                 datatype: <datatype>
@@ -134,7 +134,9 @@ class LocalCSVFile(CSVFile):
 
     """
     CONF_DELIMITER = os.path.sep
-    SUB_PATH = f'{os.environ["PROJ_ENV"]}/local'
+    CONF_NAME_DELIMITER = ':'
+    ROOT_PATH = os.environ['PROJ_PATH']
+    SUB_PATH = f'/files'
 
     def __init__(
             self,
@@ -142,8 +144,20 @@ class LocalCSVFile(CSVFile):
             properties: Dict[str, Any],
             **kwargs
     ):
-        self.ps_server_conn = 'local'
-        self.ps_cat_name: list = properties.pop('catalog_name', catalog_name).split(self.CONF_DELIMITER)
+        # DEBUG: debug arguments
+        print("Start convert config file ...")
+        print(f"{catalog_name=}")
+        print("properties= ...")
+        for k, v in properties.items():
+            print(f"{k}: {v}")
+
+        self.ps_server_conn = 'file'
+        self.ps_cat_name: list = [properties.pop('catalog_name', catalog_name)]
+
+        # DEBUG: path of root
+        print(Path(self.ROOT_PATH, *self.ps_cat_name).parts)
+        print(Path(Path(self.ROOT_PATH, *self.ps_cat_name).parts))
+
         self.ps_file_name: str = self.ps_cat_name.pop(-1)
         self.ps_sub_path: str = self.ps_cat_name.pop(-1) if self.ps_cat_name else self.SUB_PATH
         self.ps_file_type: str = properties.pop('catalog_name', catalog_name)

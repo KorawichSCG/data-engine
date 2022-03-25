@@ -59,7 +59,7 @@ def setup_logger(output_file=None, logging_config=None):
             os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)), 'conf.test', 'logging.json'
         )
         with open(conf_file, 'r') as file:
-            # logging_config = yaml.load(file, Loader=yaml.SafeLoader)
+            # logging_config = yaml.load(files, Loader=yaml.SafeLoader)
             logging_config = json.loads(file.read())
 
         # if output_file is not None:

@@ -46,6 +46,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 *.test
+*.test.*
 
 # Translations
 *.mo
@@ -114,11 +115,16 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-*.test.*
-data
-# SSH Key file
+# Data
+data/production
+data/development
+data/staging
+
+# SSH Key files
 *.pem
+
+# Configuration
 config.yaml
 
-# Engine file
+# Engine files
 *.gz

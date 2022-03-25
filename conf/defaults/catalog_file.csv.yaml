@@ -1,7 +1,7 @@
 catalog_file_customer:
      type: 'src.core.io.storage.LocalCSVFile'
      properties:
-          catalog_name: 'sandbox/data/customer_*'
+          catalog_name: data/sandbox/files/csv/customer_*
           catalog_type: 'csv'
           schemas:
                customer_id:
@@ -17,6 +17,38 @@ catalog_file_customer:
                     default: "000000000"
           header: 'true'
           encoding: 'utf-8'
+     retentions:
+          retention_schemas: [ ]
+          retention_value: 0
+
+catalog_file_billing:
+     type: 'src.core.io.storage.LocalCSVFile'
+     properties:
+          catalog_name: ${PROJ_PATH}/data/sandbox/files/csv/billing_*
+          catalog_type: 'csv'
+          schemas:
+               cust_id:
+                    datatype: "integer"
+                    nullable: "false"
+                    description: "ID of customer from customer file"
+               bill_doc:
+                    datatype: "string"
+                    nullable: "false"
+               net_value:
+                    datatype: "float"
+                    nullable: "false"
+               bill_qty:
+                    datatype: "float"
+                    nullable: "false"
+               bill_datetime:
+                    datatype: "timestamp"
+                    nullable: "false"
+               sales_number:
+                    datatype: "integer"
+                    nullable: "true"
+          header: 'true'
+          encoding: 'utf-8'
+          delimeter: '|'
      retentions:
           retention_schemas: [ ]
           retention_value: 0

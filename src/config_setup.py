@@ -1,13 +1,13 @@
 from datasets.models import AITableObject, AIDataFrameObject
 # from .datasets.pipelines import SQLStatementNode, PyFunctionNode
 from typing import Optional, Union, Set, Dict, Any, List
-from core.engine import ConfigConverter
+from core.engine import ConfigConvert
 
 PROJ_PATH = r'D:\korawica\Work\dev02_miniproj\GITHUB\data-engine'
 PROJ_ENV = 'sandbox'
 
 
-class ConfigModelParser(ConfigConverter):
+class ConfigModelParser(ConfigConvert):
     """
     Mapping models configuration that default type
     for `datasets.models.AITableObject`
@@ -18,7 +18,7 @@ class ConfigModelParser(ConfigConverter):
     ]
 
 
-# class ConfigPipelineParser(ConfigConverter):
+# class ConfigPipelineParser(ConfigConvert):
 #     """
 #     Mapping pipelines configuration that default type
 #     for `datasets.pipelines.SQLStatementNode`
@@ -27,8 +27,3 @@ class ConfigModelParser(ConfigConverter):
 #     CLASS_VALIDATE: List[object] = [
 #         SQLStatementNode, PyFunctionNode
 #     ]
-
-
-if __name__ == '__main__':
-    model3 = ConfigModelParser('catalog_pg_db_customer', 'catalog', 'db')
-    print("=" * 100)
