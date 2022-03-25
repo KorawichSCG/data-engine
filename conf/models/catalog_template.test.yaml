@@ -1,0 +1,78 @@
+# Full template for Catalog
+# Alias name when to use for reference in engine
+# The main concept of catalog is data profiling ( name, schemas )
+catalog_pg_db:
+
+     # Set type of catalog that set connection and configuration
+     type: ""
+
+     # Property of catalog in source system (1 to 1)
+     properties:
+          catalog_name: "schema_name.table_name"
+          catalog_type: "dimension, fact"
+
+          # Schemas of catalog
+          schemas:
+               column_name:
+                    datatype: ""
+                    nullable: "true or false"
+                    default: ""
+                    unique: "true or false"
+                    check: ""
+                    primary_key: "true or false"
+                    foreign_key: "ref_table_name(ref_column_name) action"
+                    description: ""
+
+          # Constraint of catalog that
+          unique: [""]
+          check: ""
+          primary_key: [""]
+          foreign_key:
+               column_name: ""
+
+          # Another properties of `type`
+
+     # Retention of catalog
+     retentions:
+          retention_schemas: ['']
+          retention_value: ""
+
+# Full template for file
+# Alias name when to use for reference in engine
+catalog_csv_file:
+
+     # Set type of catalog that set connection and configuration
+     type: ""
+
+     # Property catalog in source system (1 to many) with regular expression in Python
+     properties:
+          catalog_name: "sub_path/file_name"
+          catalog_type: ""
+
+          # Schemas of catalog
+          schemas:
+               column_name:
+                    datatype: ""
+                    nullable: ""
+                    default: ""
+                    check: ""
+                    description: ""
+
+          # Constraint of catalog
+          default: ""
+          delimiter: ""
+          encoding: ""
+          qoute: ""
+
+          # Another properties of `type`
+
+     # Retention of catalog
+     retentions:
+          retention_schemas: ['']
+          retention_value: ""
+
+     # Create when convert to json
+     version: 1
+     create: ""
+     tag: ""
+     label: ""

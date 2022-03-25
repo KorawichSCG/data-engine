@@ -1,0 +1,3 @@
+# Engine global parameters that fix for each changed environment
+# Such as `cache_time`, `structure_schema`, `module_key`
+global_param: "value"

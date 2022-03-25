@@ -1,0 +1,127 @@
+catalog_pg_customer:
+     type: 'src.core.io.database.PostgresTable'
+     properties:
+          catalog_name: public.customer
+          catalog_type: dimension
+          schemas:
+               customer_id:
+                    datatype: "serial"
+                    nullable: "false"
+                    primary_key: "true"
+                    description: "ID of customer which random generate by server"
+               customer_name:
+                    datatype: "varchar( 128 )"
+                    nullable: "false"
+               customer_phone:
+                    datatype: "varchar( 64 )"
+                    nullable: "false"
+                    default: "NAN"
+     retentions:
+          retention_schemas: [ ]
+          retention_value: 0
+     informations:
+          label: ["example", "database", "catalog"]
+          milestone: "initialize"
+          author: "demo"
+
+catalog_pg_sales:
+     type: 'src.core.io.database.PostgresTable'
+     properties:
+          catalog_name: sales
+          catalog_type: dimension
+          schemas:
+               sales_id:
+                    datatype: "serial"
+                    nullable: "false"
+               sales_username: "varchar( 128 ) not null"
+               sales_email: "varchar( 256 ) check(sales_email like '*@email.com')"
+          primary_key: ['sales_id']
+     retentions:
+          retention_schemas: [ ]
+          retention_value: 0
+     informations:
+          label: [ "example", "database", "catalog" ]
+          milestone: "initialize"
+          author: "demo"
+
+catalog_pg_billing:
+     type: 'src.core.io.database.PostgresTable'
+     properties:
+          catalog_name: billing
+          catalog_type: fact
+          schemas:
+               cust_id:
+                    datatype: "integer"
+                    nullable: "false"
+                    foreign_key: "customer(customer_id)"
+                    description: "ID of customer from customer table"
+               bill_doc:
+                    datatype: "varchar( 128 )"
+                    nullable: "false"
+               net_value:
+                    datatype: "numeric( 20, 5 )"
+                    nullable: "false"
+               bill_qty:
+                    datatype: "numeric( 10, 2 )"
+                    nullable: "false"
+               bill_datetime:
+                    datatype: "timestamp"
+                    nullable: "false"
+               sales_number:
+                    datatype: "integer"
+                    nullable: "true"
+     retentions:
+          retention_schemas: [ ]
+          retention_value: 0
+     informations:
+          label: "example"
+          milestone: "initialize"
+          author: "demo"
+
+catalog_pg_datatype:
+     type: 'src.core.io.database.PostgresTable'
+     properties:
+          schemas:
+               smallint_type: "smallint"
+               integer_or_int_type: "integer check(integer_or_int_type > 0)"
+               bigint_type: "bigint"
+               decimal_type: "decimal(10, 5)"
+               numeric_type: "numeric(12, 6)"
+               numeric_non_scale_type: "numeric(14)"
+               numeric_non_all_type: "numeric"
+               real_type: "real"
+               double_precision_type: "double precision"
+               character_varying_or_varchar_type: "varchar( 10 ) unique not null"
+               character_or_char_type: "char( 10 )"
+               text_type: "text"
+               char_type: "char"
+               name_type: "name"
+               boolean_type: "boolean"
+               money_type: "money"
+               timestamp_without_tz_type: "timestamp without time zone"
+               timestamp_with_tz_type: "timestamp with time zone"
+               timestamp_type: "timestamp"
+               timestamp_with_p_type: "timestamp(4)"
+               date_type: "date"
+               time_without_tz_type: "time without time zone"
+               time_type: "time with time zone"
+               interval_type: "interval"
+               interval_2_type: "interval"
+               interval_3_type: "interval"
+               interval_4_type: "interval year"
+               array_int_type: "integer ARRAY[4] --integer[4]"
+               array_text_type: "text[][]"
+               json_type: "json"
+               jsonb_type: "jsonb"
+               smallserial_type: "smallserial"
+               serial_type: "serial"
+               bigserial_type: "bigserial"
+               update_datetime: "timestamp(6) without time zone NOT NULL DEFAULT clock_timestamp()"
+          primary_key: 'smallint_type'
+     retentions:
+          retention_schemas: [ ]
+          retention_value: 0
+     informations:
+          label: "example"
+          milestone: "initialize"
+          author: "demo"

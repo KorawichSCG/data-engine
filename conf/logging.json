@@ -1,0 +1,94 @@
+{
+    "version": 1,
+    "disable_existing_loggers": "True",
+    "formatters": {
+        "default": {
+            "()": "logger.UTCFormatter",
+            "format": "%(asctime)s (%(thread)05d) %(levelname)-8s|: %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S"
+        },
+        "access": {
+            "format": "%(asctime)s.%(msecs)04d (%(name)s:%(threadName)s[%(thread)d]) - %(lineno)d %(levelname)-8s: %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S"
+        },
+        "fsting": {
+            "format": "{asctime}.{msecs:.0f} {levelname:<8s} ({name}:{threadName}) {message}",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+            "style": "{",
+            "validate": "True"
+        }
+    },
+    "filters": {
+        "no_console_filter": {
+            "()": "logger.NoConsoleFilter"
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "DEBUG",
+            "formatter": "default",
+            "stream": "ext://flask.logging.wsgi_errors_stream"
+        },
+        "framework_file": {
+            "class": "logger.RefmtTimedRotatingFileHandler",
+            "level": "DEBUG",
+            "formatter": "default",
+            "filename": "framework.log",
+            "when": "m",
+            "interval": 1,
+            "backupCount": 5,
+            "encoding": "utf8"
+        }
+    },
+    "loggers": {
+        "apscheduler.scheduler": {
+            "handlers": [
+                "console"
+            ],
+            "level": "INFO",
+            "propagate": "False"
+        },
+        "src.test.forecast_function": {
+            "handlers": [
+                "console"
+            ],
+            "level": "INFO",
+            "propagate": "False"
+        },
+        "src.test.framework_function": {
+            "handlers": [
+                "console"
+            ],
+            "level": "INFO",
+            "propagate": "False"
+        },
+        "src.test.reusable_function": {
+            "handlers": [
+                "console"
+            ],
+            "level": "INFO",
+            "propagate": "False"
+        },
+        "paramiko.transport": {
+            "handlers": [
+                "console"
+            ],
+            "level": "ERROR",
+            "propagate": "False"
+        },
+        "apscheduler.executors.default": {
+            "handlers": [
+                "console"
+            ],
+            "level": "ERROR",
+            "propagate": "False"
+        }
+    },
+    "root": {
+        "level": "INFO",
+        "handlers": [
+            "console"
+        ]
+    }
+}

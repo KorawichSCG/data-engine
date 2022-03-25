@@ -1,0 +1,22 @@
+catalog_file_customer:
+     type: 'src.core.io.storage.LocalCSVFile'
+     properties:
+          catalog_name: 'sandbox/data/customer_*'
+          catalog_type: 'csv'
+          schemas:
+               customer_id:
+                    datatype: "string"
+                    nullable: "false"
+                    description: "ID of customer which random generate by server"
+               customer_name:
+                    datatype: "string"
+                    nullable: "false"
+               customer_phone:
+                    datatype: "integer"
+                    nullable: "false"
+                    default: "000000000"
+          header: 'true'
+          encoding: 'utf-8'
+     retentions:
+          retention_schemas: [ ]
+          retention_value: 0
