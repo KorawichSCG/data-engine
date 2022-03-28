@@ -1,3 +1,26 @@
+#catalog-alias-name:
+#     type: 'importable-class:optional-method' # like 'core.io.database.PostgresTable:postgres_extra'
+#     properties:
+#          catalog_name: 'schema-name.table-name'
+#          catalog_type: 'table-type'
+#          schemas:
+#               column-alias-name:
+#                    datatype: 'datatype'
+#                    nullable: 'nullable-flag'
+#                    primary_key: 'nullable-flag'
+#                    description: 'column-description'
+#               ...
+#          header: 0
+#          delimiter: ','
+#          encoding: 'utf-8'
+#     retentions:
+#          retention_schemas: [ ]
+#               retention_value: 0
+#     informations:
+#          label: [ "example", "csv", "catalog" ]
+#          milestone: "initialize"
+#          author: "demo"
+
 catalog_file_customer:
      type: 'src.core.io.storage.LocalCSVFile'
      properties:
@@ -48,7 +71,7 @@ catalog_file_billing:
                     nullable: "true"
           header: 'true'
           encoding: 'utf-8'
-          delimeter: '|'
+          delimiter: '|'
      retentions:
           retention_schemas: [ ]
           retention_value: 0

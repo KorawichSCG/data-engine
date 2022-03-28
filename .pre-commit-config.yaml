@@ -5,4 +5,5 @@ repos:
     hooks:
       - id: check-yaml
       - id: end-of-file-fixer
+        exclude: '.bumpversion.cfg'
       - id: trailing-whitespace

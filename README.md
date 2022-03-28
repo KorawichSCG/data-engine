@@ -1,25 +1,22 @@
 data-engine
 ===========
 
-The python code for explore and develop data engine that easy to plug-in data source with configuration
+The python code for explore and develop the data engine that easy to plug-in data source with configuration or
+point of data transfer.
 
-We define core engine for create the main class of connection to data source first. 
-So the core is the base class of all datasets.
-
-Concept base on one file config will define all system
-
-- Models - Define data profile
-
-- ?? - Define process of models
+The definition of core engine is registries of class of system connection. 
+So the core is the base class of all probably of datasets.
 
 ---
 
 concept
 -------
 
-What data we serve?
+Concept base on one file config will define all system
 
-Where is data?
+- What data we serve?
+
+- Where is data?
 
 - Define the standard connection url of data source (for `fsspec`)
   
@@ -82,3 +79,9 @@ Data Framework
 
 - Kedro: https://kedro.readthedocs.io/en/stable/01_introduction/01_introduction.html
 - Metorikku: https://github.com/YotpoLtd/metorikku
+
+
+License
+-------
+
+This project base on MIT license

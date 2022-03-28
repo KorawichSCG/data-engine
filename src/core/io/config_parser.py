@@ -144,7 +144,7 @@ def parse_config(
         raise ValueError('Either a path or data should be defined as input')
 
 
-line_re = re.compile(r"""
+RE_LINE = re.compile(r"""
     ^
     (?:export\s+)?      # optional export
     ([\w\.]+)           # key
@@ -160,7 +160,7 @@ line_re = re.compile(r"""
     $
 """, re.VERBOSE)
 
-variable_re = re.compile(r"""
+RE_VARIABLE = re.compile(r"""
     (\\)?               # is it escaped with a backslash?
     (\$)                # literal $
     (                   # collect braces with var for sub
@@ -217,7 +217,7 @@ def parse_dotenv(content: str) -> Dict:
     env: dict = {}
 
     for line in content.splitlines():
-        if m1 := line_re.search(line):
+        if m1 := RE_LINE.search(line):
             key, value = m1.groups()
             if value is None:
                 value = ''
@@ -237,7 +237,7 @@ def parse_dotenv(content: str) -> Dict:
 
             if quote_mark != "'":
                 # Substitute variables in a value
-                for parts in variable_re.findall(value):
+                for parts in RE_VARIABLE.findall(value):
                     if parts[0] == '\\':
                         # Variable is escaped, don't replace it
                         replace = ''.join(parts[1:-1])
@@ -259,3 +259,9 @@ def parse_dotenv(content: str) -> Dict:
             )
 
     return env
+
+
+if __name__ == '__main__':
+    test = parse_config('config.test.yaml')
+    print('~'*100)
+    print(test)
