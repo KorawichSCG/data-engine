@@ -3,16 +3,15 @@ import re
 import os
 import io
 from typing import Optional
-
-import yaml
-
 try:
-    from yaml import SafeLoader
+    from yaml import safe_load
 except ImportError:
-    SafeLoader = None
+    safe_load = None
 
 # (\\)?(\$)(\{?([A-Z0-9_]+)\}?)
-RE_DOTENV_VAR = re.compile(r"""
+# RE_DOTENV_VAR: re.Pattern = re.compile(r'(\\)?(\$)({?([A-Z0-9_]+)}?)', re.IGNORECASE)
+
+RE_DOTENV_VAR: re.Pattern = re.compile(r"""
     (\\)?    # is it escaped with a backslash?
     (\$)                # literal $
     (                   # collect braces with var for sub
@@ -23,22 +22,23 @@ RE_DOTENV_VAR = re.compile(r"""
 """, re.IGNORECASE | re.VERBOSE)
 
 # [\"\']?(\$(?:(?P<escaped>\$|\d+)|(\{(?P<braced>.*?)(\:(?P<braced_default>.*?))?\})))[\"\']?
-RE_YAML = re.compile(r"""
+# RE_YAML = re.compile(r'[\"\']?(\$(?:(?P<escaped>\$|\d+)|(\{(?P<braced>.*?)(\:(?P<braced_default>.*?))?\})))[\"\']?'
+RE_YAML: re.Pattern = re.compile(r"""
     [\"\']?                                 # single or double quoted value
     (\$(?:                                  # start with non-capturing group
         (?P<escaped>\$|\d+)                 # escape $ or number like $1
         |
         (\{(?P<braced>.*?)                  # value if use braced {}
-        (\:(?P<braced_default>.*?))?\})     # value default with sep |
+        (\:(?P<braced_default>.*?))?\})     # value default with sep :
     ))
     [\"\']?                                 # single or double quoted value
 """, re.MULTILINE | re.UNICODE | re.IGNORECASE | re.VERBOSE)
 
 # (\s|^)#.*
-RE_YAML_COMMENT = re.compile(r"(\s|^)#.*", re.MULTILINE | re.UNICODE | re.IGNORECASE)
+RE_YAML_COMMENT: re.Pattern = re.compile(r"(\s|^)#.*", re.MULTILINE | re.UNICODE | re.IGNORECASE)
 
 # (?:^|^)\s*(?:export\s+)?(?P<name>[\w.-]+)(?:\s*=\s*?|:\s+?)(?P<value>\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)
-RE_DOTENV = re.compile(r"""
+RE_DOTENV: re.Pattern = re.compile(r"""
     ^\s*(?:export\s+)?      # optional export
     (?P<name>[\w.-]+)       # name of key
     (?:\s*=\s*?|:\s+?)      # separator `=` or `:`
@@ -54,10 +54,14 @@ RE_DOTENV = re.compile(r"""
     $
 """, re.MULTILINE | re.VERBOSE)
 
-RE_PARAM = re.compile(r"""
-    (\{\{)\s*           # start double brace {{
-    ([\w_\{\}\s]+)*
-    \s*(\}\})           # end double brace }}
+# {{\s*(?P<value>[\w\s\{\}$_]+)*\s*}}
+# (?:\{\{)\s*(?P<value>[\w_\{\}\s]+)*\s*(?:\}\})
+RE_PARAM: re.Pattern = re.compile(r"""
+    {{\s*                   # start double brace {{
+    (?P<value>
+        [\w\s\{\}\$\@\_]+   # filter value
+    )*
+    \s*}}                   # end double brace }}
 """, re.VERBOSE)
 
 
@@ -72,7 +76,7 @@ class ParseConfig:
     @classmethod
     def load(
             cls,
-            path: str,
+            path: str, /,
             parameter: Optional[dict] = None,
             **kwargs
     ):
@@ -83,7 +87,7 @@ class ParseConfig:
     @classmethod
     def loads(
             cls,
-            data: str,
+            data: str, /,
             parameter: Optional[dict] = None,
             **kwargs
     ):
@@ -94,7 +98,7 @@ class ParseConfig:
     @classmethod
     def load_env(
             cls,
-            path: str,
+            path: str, /,
             override: Optional[bool] = False
     ):
         return cls(path=path, override_flag=override, conf_type='env')
@@ -102,7 +106,7 @@ class ParseConfig:
     @classmethod
     def loads_env(
             cls,
-            data: str,
+            data: str, /,
             override: Optional[bool] = False
     ):
         return cls(data=data, override_flag=override, conf_type='env')
@@ -117,7 +121,7 @@ class ParseConfig:
             raise_if_default_not_exists: bool = False,
             memory_read: bool = True,
             encoding: str = 'utf-8',
-            loader: Optional[yaml.loader] = SafeLoader,
+            loader: Optional[callable] = safe_load,
             override_flag: bool = False,
             conf_type: str = 'yaml'
     ):
@@ -137,23 +141,23 @@ class ParseConfig:
         """
         if path is None and data is None:
             raise TypeError(f"{self.__class__.__name__} missing required argument: `path` or `data`")
-        if SafeLoader is None:
+        if safe_load is None:
             raise ModuleNotFoundError(
                 f'{self.__class__.__name__} require "pyyaml >= 5". '
                 'Please install this module into your environment'
             )
-        self.__path = path
-        self.__data = data
+        self.__path: Optional[str] = path
+        self.__data: Optional[str] = data
         self.__parameters: dict = parameter
         self.__default_sep: str = default_sep
         self.__default_value: str = default_value
         self.__raise_if_default_not_exists: bool = raise_if_default_not_exists
         self.__memory_read: bool = memory_read
         self.__encoding: str = encoding
-        self.__loader = loader
+        self.__loader: callable = loader
         self.__override_flag: bool = override_flag
-        self.__conf_type: str = conf_type
-        if self.__conf_type == 'env':
+        self.conf_junction(conf_type)
+        if conf_type == 'env':
             self.__contents: str = self.__open_file(
                 self.__path,
                 self.__memory_read,
@@ -208,6 +212,12 @@ class ParseConfig:
     def export(self):
         """Export configuration"""
         return self.__dict.copy()
+
+    def conf_junction(self, _conf_type: str):
+        """Junction of configuration type"""
+        if os.path.isdir(self.__path):
+            _file_name = '.env' if _conf_type == 'env' else 'config.yaml'
+            self.__path = os.path.join(self.__path, _file_name)
 
     @staticmethod
     def __open_file(
@@ -264,10 +274,12 @@ class ParseConfig:
     @staticmethod
     def __read_yaml(
             contents: str,
-            loader
+            loader: callable
     ):
         """Parse content data to `yaml.load`"""
-        return yaml.load(contents, Loader=loader)
+        # TODO: create parser for !ENV
+        # TODO: change `__main__` dynamic to `__name__` with config logging
+        return loader(contents)
 
     @staticmethod
     def __prepare_env(
@@ -323,17 +335,24 @@ class ParseConfig:
 
     @staticmethod
     def __map_internal_params(
-            content: str,
-            parameter: dict
+            contents: str,
+            parameters: dict
     ):
-        pass
+        # TODO: create internal parameter parser
+        """Parse parameters form input argument to value before return"""
+        if not parameters:
+            return contents
+        for content in RE_PARAM.finditer(contents):
+            if (value := content.group('value')) in parameters:
+                replace = parameters[value]
 
 
 conf: callable = ParseConfig
 
+__all__ = ['conf']
+
 if __name__ == '__main__':
-    conf.load_env('.test.env')
-    config = conf.load(path='config.test.yaml')
-    print('=' * 150)
+    conf.load_env('../tests/mockups/.test.env')
+    config = conf.load('../tests/mockups/config.test.yaml', parameter={'inbound_param01': 'config_table_name'})
     print(config.project_name)
     print(config.statement)

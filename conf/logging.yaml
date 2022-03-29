@@ -1,0 +1,32 @@
+version: 1
+disable_existing_loggers: true
+formatters:
+     defaults:
+          (): 'src.core.io.log_parser.UTCFormatter'
+          format: '%(asctime)s (%(thread)05d) %(levelname)-8s|: %(message)s'
+          datefmt: '%Y-%m-%d %H:%M:%S'
+     access:
+          format: "%(asctime)s.%(msecs)04d (%(name)s:%(threadName)s[%(thread)d]) - %(lineno)d %(levelname)-8s: %(message)s"
+          datefmt: "%Y-%m-%d %H:%M:%S"
+     fsting:
+          format: "{asctime}.{msecs:.0f} {levelname:<8s} ({name}:{threadName}) {message}"
+          datefmt: "%Y-%m-%d %H:%M:%S"
+          style: "{"
+          validate: "True"
+filters:
+     no_console_filter:
+          (): 'src.core.io.log_parser.NoConsoleFilter'
+handlers:
+     console:
+          class: 'logging.StreamHandler'
+          formatter: 'defaults'
+          level: 'DEBUG'
+          stream: 'ext://sys.stdout'
+root:
+     level: "DEBUG"
+     handlers: [ "console" ]
+loggers:
+     src.*:
+          handlers: [ "console" ]
+          level: "ERROR"
+          propagate: false

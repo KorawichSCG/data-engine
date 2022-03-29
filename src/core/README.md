@@ -11,7 +11,9 @@ Now, I do not have idea to define the name of `core`
  │  └── [plugins]
  │
  ├── [io]
- │  └── [plugins]
+ │  ├── [database]
+ │  ├── [dataframe]
+ │  └── [storage]
  │
  ├── [utils]
  ├── [tests]

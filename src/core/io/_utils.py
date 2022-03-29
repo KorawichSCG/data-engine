@@ -31,7 +31,7 @@ def infer_storage_options(urlpath, inherit_storage_options=None):
     Examples
     --------
     >>> infer_storage_options('/mnt/datasets/test.csv')  # doctest: +SKIP
-    {"protocol": "file", "path", "/mnt/datasets/test.csv"}
+    {"protocol": "file", "path": "/mnt/datasets/test.csv"}
     >>> infer_storage_options(
     ...     'hdfs://username:pwd@node:123/mnt/datasets/test.csv?q=1',
     ...     inherit_storage_options={'extra': 'value'},
@@ -97,8 +97,7 @@ def infer_storage_options(urlpath, inherit_storage_options=None):
 def update_storage_options(options, inherited=None):
     if not inherited:
         inherited = {}
-    collisions = set(options) & set(inherited)
-    if collisions:
+    if collisions := set(options) & set(inherited):
         for collision in collisions:
             if options.get(collision) != inherited.get(collision):
                 raise KeyError(
@@ -263,8 +262,7 @@ def read_block(f, offset, length, delimiter=None, split_before=False):
         length = end - start
 
     f.seek(offset)
-    b = f.read(length)
-    return b
+    return f.read(length)
 
 
 def tokenize(*args, **kwargs):
@@ -319,12 +317,6 @@ def stringify_path(filepath):
         return filepath.path
     else:
         return filepath
-
-
-def make_instance(cls, args, kwargs):
-    inst = cls(*args, **kwargs)
-    inst._determine_worker()
-    return inst
 
 
 def common_prefix(paths):

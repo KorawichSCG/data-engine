@@ -10,7 +10,7 @@ from core.engine.errors import (
     ValidateSchemaError, ConfigNotFound, ValidateTypeError
 )
 from src.core.utils import merge_dicts, import_string
-from src.core.io import parse_config, load_dotenv, path_join
+from src.core.io import conf, path_join
 from src.core.io.database import postgresql_obj
 from src.core.io.storage import local
 from pathlib import Path
@@ -23,7 +23,7 @@ logger.addHandler(consoleHandler)
 logger.setLevel('INFO')
 
 os.environ.setdefault('PROJ_PATH', path_join(Path(__file__).parent, '../../..'))
-load_dotenv(path_join(os.environ['PROJ_PATH'], 'conf'))
+conf.load_env(path_join(os.environ['PROJ_PATH'], 'conf/.env'))
 
 
 class ConfigParser:
@@ -184,15 +184,15 @@ class ConfigParser:
     ) -> Dict[str, Any]:
         """Get config enhance function base on `parse_config`"""
         sub_path: str = f'{module}/' if module else ''
-        conf: dict = {}
+        _conf_result: dict = {}
         for path_object in Path(ConfigParser.CONF_PATH).glob(f'{sub_path}{prefix}*{suffix}.yaml'):
             if path_object.is_file() and path_object.stat().st_size != 0:
-                catalog_data: Dict[str, Any] = parse_config(str(path_object), encoding=encoding)
+                catalog_data: Dict[str, Any] = conf.load(str(path_object), encoding=encoding)
                 if not conf_name:
-                    conf: dict = merge_dicts(conf, catalog_data)
+                    _conf_result: dict = merge_dicts(_conf_result, catalog_data)
                 elif conf_name in catalog_data:
                     return catalog_data[conf_name]
-        return conf
+        return _conf_result
 
 
 class ConfigConvert(ConfigParser):

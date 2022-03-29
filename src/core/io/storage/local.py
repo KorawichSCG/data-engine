@@ -3,11 +3,11 @@ import re
 import itertools
 from pathlib import Path
 from typing import Any, Dict, Union, Optional
-from src.core.utils import path_join, str_to_bool
-from src.core.io import parse_config, load_dotenv
+from src.core.utils import str_to_bool
+from src.core.io import path_join, conf
 
 PROJ_PATH = path_join(Path(__file__).parent, '../../../..')
-load_dotenv(path_join(PROJ_PATH, 'conf'))
+conf.load_env(path_join(PROJ_PATH, 'conf/.env'))
 
 
 class CSVColumn:

@@ -3,15 +3,15 @@ import re
 import itertools
 from pathlib import Path
 from typing import Any, Dict, Union, Optional
-from src.core.utils import path_join, str_to_bool
-from src.core.io import parse_config, load_dotenv
-from .plugins.postgresql_plugin import (
+from src.core.utils import str_to_bool
+from src.core.io import conf, path_join
+from .plugins.postgresql_plug import (
     TableObject, ViewObject, MaterializedViewObject, FunctionObject, ProcedureObject
 )
 
 os.environ.setdefault('PROJ_PATH', path_join(Path(__file__).parent, '../../../..'))
-load_dotenv(path_join(os.environ['PROJ_PATH'], 'conf'))
-CONF_DB = parse_config(
+conf.load_env(path_join(os.environ['PROJ_PATH'], 'conf/.env'))
+CONF_DB = conf.load(
     f'{os.environ["PROJ_PATH"]}/conf/config.yaml')['datasets'][f'postgresql.{os.environ["PROJ_ENV"]}']
 
 

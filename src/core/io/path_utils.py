@@ -13,6 +13,14 @@ def path_join(full_path: Union[AnyStr, Path], full_join_path: str) -> AnyStr:
     Example
     -------
         `full_join_path` is '../../<path>'
+
+    Upgrade
+    -------
+        goal_dir = os.path.join(os.getcwd(), "../../my_dir")
+        print goal_dir  # prints C:/here/I/am/../../my_dir
+        print os.path.normpath(goal_dir)  # prints C:/here/my_dir
+        print os.path.realpath(goal_dir)  # prints C:/here/my_dir
+        print os.path.abspath(goal_dir)  # prints C:/here/my_dir
     """
     _abspath: Union[AnyStr, Path] = Path('../utils').resolve() if full_path == '.' else full_path
     _join_split: list = os.path.normpath(full_join_path).split(os.sep)
