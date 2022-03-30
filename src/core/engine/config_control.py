@@ -10,17 +10,15 @@ from core.engine.errors import (
     ValidateSchemaError, ConfigNotFound, ValidateTypeError
 )
 from src.core.utils import merge_dicts, import_string
-from src.core.io import conf, path_join
+from src.core.io.conf_parser import conf
+from src.core.io.path_utils import path_join
 from src.core.io.database import postgresql_obj
-from src.core.io.storage import local
+from core.io.dataframe import local_obj
 from pathlib import Path
 
-
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
-consoleHandler = logging.StreamHandler()
-consoleHandler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s - %(message)s"))
-logger.addHandler(consoleHandler)
-logger.setLevel('INFO')
+logger.setLevel(logging.DEBUG)
 
 os.environ.setdefault('PROJ_PATH', path_join(Path(__file__).parent, '../../..'))
 conf.load_env(path_join(os.environ['PROJ_PATH'], 'conf/.env'))
@@ -251,7 +249,7 @@ class ConfigDefaultMapping(ConfigMapping):
     CONF_SUB_PATH: ClassVar[str] = 'defaults'
     CLASS_VALIDATE: List[object] = [
         postgresql_obj.PostgresTable,
-        local.LocalCSVFile
+        local_obj.PandasCSVFrame
     ]
 
 
@@ -259,5 +257,5 @@ class ConfigDefaultConvert(ConfigConvert):
     CONF_SUB_PATH: ClassVar[str] = 'defaults'
     CLASS_VALIDATE: List[object] = [
         postgresql_obj.PostgresTable,
-        local.LocalCSVFile
+        local_obj.PandasCSVFrame
     ]

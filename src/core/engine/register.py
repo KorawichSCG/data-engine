@@ -222,7 +222,7 @@ def get_filesystem_class(protocol):
 def _import_class(cls, minv=None):
     """
     Take a string FQP and return the imported class or identifier
-    clas is of the form "package.module.klass" or "package.module:sub-object.klass"
+    class is of the form "package.module.klass" or "package.module:sub-object.klass"
     """
     if ":" in cls:
         mod, name = cls.rsplit(":", 1)

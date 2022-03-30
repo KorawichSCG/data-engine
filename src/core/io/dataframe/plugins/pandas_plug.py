@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from .file_plug import FileObject
 
 
 class PandasDataFrame:
@@ -60,5 +61,23 @@ class PandasDataFrame:
         return None
 
 
-class PandasCSV:
-    pass
+class PandasCSVObject:
+    """Pandas DataFrame for parse `csv` file"""
+    OBJECT_TYPE = "csv"
+    __excluded__ = {'save'}
+
+    def __init__(
+            self,
+            server_conn,
+            sub_path,
+            file_name,
+            file_type
+    ):
+        self.file_name: str = file_name
+        # super(PandasCSVFrame, self).__init__(
+        #     server_conn,
+        #     sub_path,
+        #     file_name,
+        #     file_type
+        # )
+

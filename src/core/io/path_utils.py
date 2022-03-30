@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import AnyStr, Union
 
 
-def path_join(full_path: Union[AnyStr, Path], full_join_path: str) -> AnyStr:
+def path_join(full_path: Union[AnyStr, Path], full_join_path: str, swap_slash: bool = True) -> AnyStr:
     """
     Join path with multi pardir value. This function base on `os.path.join`
 
@@ -27,7 +27,7 @@ def path_join(full_path: Union[AnyStr, Path], full_join_path: str) -> AnyStr:
     for path in _join_split:
         _abspath: AnyStr = os.path.abspath(os.path.join(_abspath, os.pardir)) if path == '..' \
             else os.path.abspath(os.path.join(_abspath, path))
-    return _abspath
+    return _abspath.replace("\\", "/") if swap_slash else _abspath
 
 
 def walk(path: Union[AnyStr, Path]):

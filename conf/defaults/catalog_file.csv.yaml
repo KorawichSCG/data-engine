@@ -22,10 +22,10 @@
 #          author: "demo"
 
 catalog_file_customer:
-     type: 'src.core.io.storage.LocalCSVFile'
+     type: 'src.core.io.dataframe.PandasCSVFrame'
      properties:
-          catalog_name: data/sandbox/files/csv/customer_*
-          catalog_type: 'csv'
+          catalog_name: "csv/customer*.csv"
+          catalog_type: 'dir'
           schemas:
                customer_id:
                     datatype: "string"
@@ -45,10 +45,10 @@ catalog_file_customer:
           retention_value: 0
 
 catalog_file_billing:
-     type: 'src.core.io.storage.LocalCSVFile'
+     type: 'src.core.io.dataframe.PandasCSVFrame'
      properties:
-          catalog_name: ${PROJ_PATH}/data/sandbox/files/csv/billing_*
-          catalog_type: 'csv'
+          catalog_name: "csv/billing_*.csv"
+          catalog_type: 'file'
           schemas:
                cust_id:
                     datatype: "integer"

@@ -1,33 +1,8 @@
 import pandas as pd
-from typing import Dict, Any, Optional, List, Union, Tuple
 import psycopg
+from typing import Dict, Any, Optional, List, Union, Tuple
 from psycopg.sql import SQL
 from psycopg.rows import tuple_row
-
-
-class HideMeta(type):
-    """
-    Reference:
-    `https://stackoverflow.com/questions/23181442/how-to-hide-remove-some-methods-in-inherited-class-in-python`
-    """
-    def __new__(mcs, cls_name, cls_bases, cls_dict):
-        cls_dict.setdefault("__excluded__", [])
-        out_cls = super(HideMeta, mcs).__new__(mcs, cls_name, cls_bases, cls_dict)
-
-        def __getattribute__(self, name):
-            if name in cls_dict["__excluded__"]:
-                raise AttributeError(name)
-            else:
-                return super(out_cls, self).__getattribute__(name)
-
-        out_cls.__getattribute__ = __getattribute__
-
-        def __dir__(self):
-            return sorted((set(dir(out_cls)) | set(self.__dict__.keys())) - set(cls_dict["__excluded__"]))
-
-        out_cls.__dir__ = __dir__
-
-        return out_cls
 
 
 class PostgresConn:
@@ -805,7 +780,3 @@ class ProcedureObject(PostgresObject):
                 $store_proc$
     """
     OBJECT_TYPE = "procedure"
-
-
-if __name__ == '__main__':
-    pass

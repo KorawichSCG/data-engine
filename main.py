@@ -1,10 +1,10 @@
 import os
 import src.core.io.log_parser
-from pathlib import Path
-import src.core.engine.config_control as cc
+from src.core.engine.config_control import ConfigDefaultMapping
+from src.core.io.path_utils import path_join
 
-PROJ_PATH = os.environ.get('PROJ_PATH', os.path.abspath(os.path.join(os.path.dirname(__file__))))
-src.core.io.log_parser.setup_log(os.path.join(PROJ_PATH, 'conf', 'logging.yaml'))
+PROJ_PATH = os.environ.get('PROJ_PATH', path_join(os.path.dirname(__file__), '../../../..'))
+src.core.io.log_parser.setup_log(path_join(PROJ_PATH, 'conf/logging.yaml'))
 logger = src.core.io.log_parser.get_logger(__name__)
 
 
@@ -19,7 +19,7 @@ def test_pg_db():
     # for name, detail in config02.model.schemas.items():
     #     print(f"{name}: {detail.details}")
     print("*" * 150)
-    config03 = cc.ConfigDefaultMapping('catalog_pg_sales', 'catalog', 'pg')
+    config03 = ConfigDefaultMapping('catalog_pg_sales', 'catalog', 'pg')
     # for name, detail in config03.model.schemas.items():
     #     print(f"{name}: {detail.details}")
     print(config03.model.schemas)
@@ -27,14 +27,14 @@ def test_pg_db():
 
 
 def test_local_csv():
-    config01 = cc.ConfigDefaultMapping('catalog_file_customer', 'catalog', 'csv')
+    config01 = ConfigDefaultMapping('catalog_file_customer', 'catalog', 'csv')
     print("*" * 150)
-    print(config01.model.ps_sub_path)
-    print(config01.model.ps_file_name)
-    print("*" * 150)
+    for k, v in config01.model.schemas.items():
+        print(f"{k} = {v.details}")
+    # print("*" * 150)
 
 
 if __name__ == '__main__':
     # test_pg_db()
-    # test_local_csv()
-    logger.info("Start logging in `main.py`")
+    test_local_csv()
+    # print(PROJ_PATH)

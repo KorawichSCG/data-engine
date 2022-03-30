@@ -57,6 +57,21 @@ The process is mapping of catalog and node, that mean head and tail of process a
 
 So we should define parameters transfer between walking of process.
 
+
+Example Scenario
+----------------
+
+1) We get the requirement for get 3 files of data source ingest to the Postgres database
+    - customer.csv
+    - billing.csv
+    - product.json
+
+2) We will prepare billing staging table filter value more than 0
+    - customer_prepare
+    - billing_prepare
+    - product_prepare
+
+
 Dependency Lib
 --------------
 

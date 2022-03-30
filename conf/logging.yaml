@@ -1,5 +1,5 @@
 version: 1
-disable_existing_loggers: true
+disable_existing_loggers: false  # `true` will disable logging from another module
 formatters:
      defaults:
           (): 'src.core.io.log_parser.UTCFormatter'
@@ -20,13 +20,18 @@ handlers:
      console:
           class: 'logging.StreamHandler'
           formatter: 'defaults'
+          filters: [ 'no_console_filter' ]
           level: 'DEBUG'
-          stream: 'ext://sys.stdout'
+          stream: 'ext://sys.stderr'  # `sys.stdout` will change log in printing level
 root:
      level: "DEBUG"
      handlers: [ "console" ]
 loggers:
-     src.*:
+     src.core.io:
           handlers: [ "console" ]
-          level: "ERROR"
+          level: "DEBUG"
+          propagate: false
+     src.core.engine:
+          handlers: [ "console" ]
+          level: "INFO"
           propagate: false

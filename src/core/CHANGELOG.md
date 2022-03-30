@@ -19,4 +19,4 @@ Tracking
   - [ ] Create path utility function
   - [ ] Create unittest
     
-- [ ] Create logging function
+- [x] Create logging function

@@ -2,11 +2,16 @@ import mmap
 import re
 import os
 import io
+import logging
 from typing import Optional
 try:
     from yaml import safe_load
 except ImportError:
     safe_load = None
+
+logging.basicConfig(level=logging.WARNING)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # (\\)?(\$)(\{?([A-Z0-9_]+)\}?)
 # RE_DOTENV_VAR: re.Pattern = re.compile(r'(\\)?(\$)({?([A-Z0-9_]+)}?)', re.IGNORECASE)
@@ -151,11 +156,9 @@ class ParseConfig:
         self.__parameters: dict = parameter
         self.__default_sep: str = default_sep
         self.__default_value: str = default_value
-        self.__raise_if_default_not_exists: bool = raise_if_default_not_exists
         self.__memory_read: bool = memory_read
         self.__encoding: str = encoding
         self.__loader: callable = loader
-        self.__override_flag: bool = override_flag
         self.conf_junction(conf_type)
         if conf_type == 'env':
             self.__contents: str = self.__open_file(
@@ -163,7 +166,7 @@ class ParseConfig:
                 self.__memory_read,
                 self.__encoding
             ) if self.__path else self.__data
-            self.__load_env(self.__prepare_env(self.__contents), self.__override_flag)
+            self.__load_env(self.__prepare_env(self.__contents), override_flag)
         else:
             if self.__default_sep != ':':
                 raise NotImplementedError(f"{self.__class__.__name__} does not support sep {self.__default_sep!r}")
@@ -175,7 +178,7 @@ class ParseConfig:
             self.__raw_data: str = self.__prepare_yaml(
                 self.__contents,
                 self.__default_value,
-                self.__raise_if_default_not_exists
+                raise_if_default_not_exists
             )
             self.__dict = self.__read_yaml(self.__raw_data, self.__loader)
             for _data in self.__dict:
@@ -200,11 +203,18 @@ class ParseConfig:
         raise NotImplementedError(f"{self.__class__.__name__} does not support for set item configuration")
 
     def __getattr__(self, attr):
-        """Get attribute when use `cls.attr`"""
+        """
+        Get attribute when use `cls.attr` that mean
+        `cls.__dict__['attr'].__getattr__(instance, cls)`
+        """
         return getattr(self.__dict, attr)
 
     def __setattr__(self, attr, value):
-        """Force to raise error when try to set attribute, like `cls.attr = ?`"""
+        """
+        Force to raise error when try to set attribute, like `cls.attr = ?`
+        that mean
+        `cls.__dict__['attr'].__setattr__(instance, value)`
+        """
         if not attr.startswith(f'_{self.__class__.__name__}__'):
             raise NotImplementedError(f"{self.__class__.__name__} does not support for set attribute configuration")
         super(ParseConfig, self).__setattr__(attr, value)
@@ -277,8 +287,8 @@ class ParseConfig:
             loader: callable
     ):
         """Parse content data to `yaml.load`"""
-        # TODO: create parser for !ENV
         # TODO: change `__main__` dynamic to `__name__` with config logging
+        logger.debug(f"Start load content in __name__ is {__name__}")
         return loader(contents)
 
     @staticmethod
