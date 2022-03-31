@@ -4,7 +4,7 @@ data-engine
 The python code for explore and develop the data engine that easy to plug-in data source with configuration or
 point of data transfer.
 
-The definition of core engine is registries of class of system connection. 
+The definition of core engine is registries of class of system connection.
 So the core is the base class of all probably of datasets.
 
 ---
@@ -19,31 +19,31 @@ Concept base on one file config will define all system
 - Where is data?
 
 - Define the standard connection url of data source (for `fsspec`)
-  
+
     - file url `protocal://username/path/subpath/filename.extention`
-      
+
       Window: `file:///C:/folder/sub-folder/file.extention`
-    
+
       S3: `s3://bucket/path/`
-      
+
     - database url `protocal://username:password@host:port/database`
-    
+
       Postgresql: `postgresql://username:password@localhost/database`
-    
+
       Mysql: `mysql+pymysql://username:password@host/database?charset=utf8mb4`
-      
+
       Mongodb: `mongodb://myDBReader:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin`
-    
+
       Mongodb Cluster: `mongodb://username:password@example.com:27017,example2.com:27017,...,example.comN:27017/database?key=value&keyN=valueN`
-    
-    Note: If the username or password includes the following characters: 
+
+    Note: If the username or password includes the following characters:
     ```
     : / ? # [ ] @
     ```
     those characters must be converted using [percent encoding](https://datatracker.ietf.org/doc/html/rfc3986#section-2.1).
-    
+
     Reference: https://github.com/mongodb/specifications/blob/master/source/connection-string/connection-string-spec.rst
-  
+
 
 Which data do you want?
 

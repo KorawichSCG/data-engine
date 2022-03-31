@@ -23,8 +23,8 @@
 catalog_pg_customer:
      type: 'src.core.io.database.PostgresTable'
      properties:
-          catalog_name: public.customer
-          catalog_type: dimension
+          catalog_name: 'public.customer_master'
+          catalog_type: 'dimension'
           schemas:
                customer_id:
                     datatype: "serial"
@@ -49,8 +49,8 @@ catalog_pg_customer:
 catalog_pg_sales:
      type: 'src.core.io.database.PostgresTable'
      properties:
-          catalog_name: sales
-          catalog_type: dimension
+          catalog_name: 'public.sales'
+          catalog_type: 'dimension'
           schemas:
                sales_id:
                     datatype: "serial"
@@ -70,7 +70,7 @@ catalog_pg_billing:
      type: 'src.core.io.database.PostgresTable'
      properties:
           catalog_name: billing
-          catalog_type: fact
+          catalog_type: 'fact'
           schemas:
                cust_id:
                     datatype: "integer"
@@ -104,7 +104,7 @@ catalog_pg_datatype:
      type: 'src.core.io.database.PostgresTable'
      properties:
           catalog_name: datatype
-          catalog_type: dimension
+          catalog_type: 'dimension'
           schemas:
                smallint_type: "smallint"
                integer_or_int_type: "integer check(integer_or_int_type > 0)"

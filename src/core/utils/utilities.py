@@ -239,12 +239,9 @@ def get_encoding_type(file):
         raw_data = f.read()
     return detect(raw_data)['encoding']
 
+
 def correctSubtitleEncoding(filename, newFilename, encoding_from, encoding_to='UTF-8'):
     with open(filename, 'r', encoding=encoding_from) as fr:
         with open(newFilename, 'w', encoding=encoding_to) as fw:
             for line in fr:
                 fw.write(line[:-1]+'\r\n')
-
-from pathlib import Path
-# path = Path("yourfile.txt")
-# path.write_text(path.read_text(encoding="utf16"), encoding="utf8")

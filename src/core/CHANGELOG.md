@@ -14,9 +14,9 @@ Tracking
 - [ ] Create config parser class for create instance of configuration instance
   - [x] Create config parser class
   - [ ] Create unittest
-    
-- [ ] Create path utility functions 
+
+- [ ] Create path utility functions
   - [ ] Create path utility function
   - [ ] Create unittest
-    
+
 - [x] Create logging function

@@ -1,0 +1,43 @@
+#catalog-alias-name:
+#     type: 'importable-class:optional-method' # like 'core.io.database.PostgresTable:postgres_extra'
+#     properties:
+#          catalog_name: 'schema-name.table-name'
+#          catalog_type: 'table-type'
+#          schemas:
+#               column-alias-name:
+#                    datatype: 'datatype'
+#                    nullable: 'nullable-flag'
+#                    primary_key: 'nullable-flag'
+#                    description: 'column-description'
+#               ...
+#          primary_key: 'column-alias-name-list'
+#          unique: 'column-alias-name-list'
+#     retentions:
+#          retention_schemas: [ ]
+#               retention_value: 0
+#     informations:
+#          label: [ "example", "database", "catalog" ]
+#          milestone: "initialize"
+#          author: "demo"
+
+catalog_file_promotion:
+     type: 'src.core.io.dataframe.PandasExcelFrame'
+     properties:
+          catalog_name: "excel/promo_*.xls"
+          catalog_type: 'file'
+          schemas:
+               product_id:
+                    datatype: "string"
+                    nullable: "false"
+                    description: "ID of product which random generate by server"
+               promo_start:
+                    datatype: "date"
+               promo_end:
+                    datatype: "date"
+                    default: "9999-12-31"
+               promo_percentage: "decimal( 6, 2 ) default '0.0'"
+          header: 0
+          encoding: 'utf-8'
+     retentions:
+          retention_schemas: [ ]
+          retention_value: 0

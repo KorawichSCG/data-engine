@@ -1,9 +1,22 @@
 # Reference: https://github.com/pre-commit/pre-commit
+# We can rewrite default `pre-commit` by git to python pre-commit by follow this step:
+#   (1) pre-commit uninstall & pre-commit install
+#   (2) cd .git/hooks & rm pre-commiit
+#   (3) pre-commit install & pre-commit run --all-files
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.3.0
     hooks:
+      - id: trailing-whitespace
       - id: check-yaml
       - id: end-of-file-fixer
         exclude: '.bumpversion.cfg'
-      - id: trailing-whitespace
+      - id: check-added-large-files
+  - repo: local
+    hooks:
+      - id: pytest-check
+        name: PyTest Runner
+        entry: pytest
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -213,4 +213,3 @@ class PandasCSVFrame(PandasCSVObject):
     @staticmethod
     def get_str_or_list(props, key) -> list:
         return _return_key if isinstance((_return_key := props.pop(key, [])), list) else [_return_key]
-

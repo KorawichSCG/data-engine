@@ -1,0 +1,48 @@
+[
+  {
+    "product_id": "",
+    "product_type": "inventory",
+    "attribute": {
+      "color": "sold",
+      "material": "2021-10-27",
+      "brand": "2021-10-24",
+      "weigh": "B-CDG 80V/200A-II L",
+      "high": "NF2008019051254"
+    },
+    "modified": "2021-12-15 13:47:06.667916",
+    "product_name": "D 0001",
+    "purchase_details": {
+      "vendor_name": 24,
+      "vendor_id": 24,
+      "vendor_product_code": null,
+      "end_date": "2022-08-01",
+      "location": "Chian Yai",
+      "service": null,
+      "start_date": null,
+      "type": "sold"
+    }
+  },
+  {
+    "product_id": "",
+    "product_type": "inventory",
+    "attribute": {
+      "color": "sold",
+      "material": "2021-10-27",
+      "brand": "2021-10-24",
+      "weigh": "B-CDG 80V/200A-II L",
+      "high": "NF2008019051254"
+    },
+    "modified": "2021-12-15 13:47:06.667916",
+    "product_name": "D 0001",
+    "purchase_details": {
+      "vendor_name": 24,
+      "vendor_id": 24,
+      "vendor_product_code": null,
+      "end_date": "2022-08-01",
+      "location": "Chian Yai",
+      "service": null,
+      "start_date": null,
+      "type": "sold"
+    }
+  }
+]

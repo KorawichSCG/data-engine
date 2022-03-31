@@ -24,8 +24,8 @@
 catalog_file_customer:
      type: 'src.core.io.dataframe.PandasCSVFrame'
      properties:
-          catalog_name: "csv/customer*.csv"
-          catalog_type: 'dir'
+          catalog_name: "csv/customer_*.csv"
+          catalog_type: 'file'
           schemas:
                customer_id:
                     datatype: "string"
@@ -38,7 +38,7 @@ catalog_file_customer:
                     datatype: "integer"
                     nullable: "false"
                     default: "000000000"
-          header: 'true'
+          header: 0
           encoding: 'utf-8'
      retentions:
           retention_schemas: [ ]
@@ -69,7 +69,7 @@ catalog_file_billing:
                sales_number:
                     datatype: "integer"
                     nullable: "true"
-          header: 'true'
+          header: 0
           encoding: 'utf-8'
           delimiter: '|'
      retentions:

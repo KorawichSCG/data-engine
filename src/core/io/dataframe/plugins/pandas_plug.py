@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-from .file_plug import FileObject
 
 
 class PandasDataFrame:
@@ -80,4 +79,3 @@ class PandasCSVObject:
         #     file_name,
         #     file_type
         # )
-
