@@ -2,35 +2,32 @@ import datetime
 import os
 import gzip
 import json
-import sys
 import logging
 from typing import (
-    Optional, Dict, Any, List, Union, Callable, Type, Literal, NoReturn, NewType, ClassVar
+    Optional, Dict, Any, List, Callable, NoReturn, ClassVar
 )
-from src.core.errors import (
+from core.engine.errors import (
     ValidateSchemaError, ConfigNotFound, ValidateTypeError
 )
-from src.core.utils import path_join, merge_dicts, import_string
-from src.core.io import parse_config, load_dotenv
-from src.core.io.database import postgresql
-from src.core.io.storage import local
+from src.core.utils import merge_dicts, import_string
+from src.core.io.conf_parser import conf
+from src.core.io.path_utils import path_join
+from src.core.io.database import postgresql_obj
+from src.core.io.dataframe import pandas_obj
 from pathlib import Path
 
-
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
-consoleHandler = logging.StreamHandler()
-consoleHandler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s - %(message)s"))
-logger.addHandler(consoleHandler)
-logger.setLevel('INFO')
+logger.setLevel(logging.DEBUG)
 
 os.environ.setdefault('PROJ_PATH', path_join(Path(__file__).parent, '../../..'))
-load_dotenv(path_join(os.environ['PROJ_PATH'], 'conf'))
+conf.load_env(path_join(os.environ['PROJ_PATH'], 'conf/.env'))
 
 
 class ConfigParser:
     """
-    Create config instance from `yaml` configuration file after convert to
-    compressed `json` file. This class will validate structure of config keys
+    Create config instance from `yaml` configuration files after convert to
+    compressed `json` files. This class will validate structure of config keys
     """
     CONF_SUB_PATH: ClassVar[str] = 'defaults'
     CLASS_VALIDATE: ClassVar[List[object]] = []
@@ -52,9 +49,9 @@ class ConfigParser:
     ):
         """
         Base argument for parser `yaml` config will be get
-        :param: conf_name - Configuration key name in `yaml` file
-        :param: conf_file_prefix - Prefix `yaml` file name
-        :param: conf_file_suffix - Suffix `yaml` file name
+        :param: conf_name - Configuration key name in `yaml` files
+        :param: conf_file_prefix - Prefix `yaml` files name
+        :param: conf_file_suffix - Suffix `yaml` files name
         """
         self.conf_name: str = conf_name
         self.conf_file_prefix: str = conf_file_prefix or ''
@@ -124,10 +121,10 @@ class ConfigParser:
             encoding: str = 'utf-8'
     ) -> NoReturn:
         """
-        Convert configuration data from `yaml` to `json` file
+        Convert configuration data from `yaml` to `json` files
         """
         if self.verbose:
-            logger.info(f"Write config `json` file to {self.conf_cache_name!r}")
+            logger.info(f"Write config `json` files to {self.conf_cache_name!r}")
 
         with gzip.open(self.conf_cache_path, mode='w') as file:
             file.write(json.dumps(
@@ -145,7 +142,7 @@ class ConfigParser:
             decoding: str = 'utf-8'
     ) -> Dict[str, Any]:
         """
-        Get configuration data from `json` file. If data does not exist,
+        Get configuration data from `json` files. If data does not exist,
         it will put config and repeat get again.
         """
         if self.conf_cache_path.exists():
@@ -157,9 +154,9 @@ class ConfigParser:
                     return conf_data.get("config").get(conf_get_name, {})
 
         if self.verbose:
-            logger.info("Does not found config `json` file or cache time was expired")
+            logger.info("Does not found config `json` files or cache time was expired")
 
-        # TODO: add version stamp on file name
+        # TODO: add version stamp on files name
         self.put_config_cache()
         return self.get_config_cache(conf_get_name)
 
@@ -185,15 +182,15 @@ class ConfigParser:
     ) -> Dict[str, Any]:
         """Get config enhance function base on `parse_config`"""
         sub_path: str = f'{module}/' if module else ''
-        conf: dict = {}
+        _conf_result: dict = {}
         for path_object in Path(ConfigParser.CONF_PATH).glob(f'{sub_path}{prefix}*{suffix}.yaml'):
             if path_object.is_file() and path_object.stat().st_size != 0:
-                catalog_data: Dict[str, Any] = parse_config(str(path_object), encoding=encoding)
+                catalog_data: Dict[str, Any] = conf.load(str(path_object), encoding=encoding)
                 if not conf_name:
-                    conf: dict = merge_dicts(conf, catalog_data)
+                    _conf_result: dict = merge_dicts(_conf_result, catalog_data)
                 elif conf_name in catalog_data:
                     return catalog_data[conf_name]
-        return conf
+        return _conf_result
 
 
 class ConfigConvert(ConfigParser):
@@ -251,14 +248,14 @@ class ConfigMapping(ConfigParser):
 class ConfigDefaultMapping(ConfigMapping):
     CONF_SUB_PATH: ClassVar[str] = 'defaults'
     CLASS_VALIDATE: List[object] = [
-        postgresql.PostgresTable,
-        local.LocalCSVFile
+        postgresql_obj.PostgresTable,
+        pandas_obj.PandasCSVFrame
     ]
 
 
 class ConfigDefaultConvert(ConfigConvert):
     CONF_SUB_PATH: ClassVar[str] = 'defaults'
     CLASS_VALIDATE: List[object] = [
-        postgresql.PostgresTable,
-        local.LocalCSVFile
+        postgresql_obj.PostgresTable,
+        pandas_obj.PandasCSVFrame
     ]

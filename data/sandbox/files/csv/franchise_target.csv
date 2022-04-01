@@ -1,0 +1,7 @@
+DC Code,DC Name,FC Code,FC Name,FC Inventory Target (Value),FC Lead Time
+\"8910\",DC Korat, 8010,SCGH Korat, -   , -
+\"8910\",DC Korat, 8020,SCGH Khonkaen," 20,000,000 ", 2
+\"8910\",DC Korat, 8030,SCGH Roi et," 20,000,000 ", 2
+\"8910\",DC Korat, 8040,SCGH Sakon nakhon," 20,000,000 ", 2
+\"8910\",DC Korat, 8170,SCGH Udon thani," 20,000,000 ", 2
+\"8080\",SCGH 3K Hatyai, 8190,SCGH 3K Homebase," 40,000,000 ", 1

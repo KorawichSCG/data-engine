@@ -1,0 +1,6 @@
+customer_id,customer_name,email,customer_phone,age,age,work_from_home,location
+1,"John Foo",jfoo@email.com,(05) 112,31,31,Yes,"23,road A,USA"
+2,"Kelvin Duck",kelvin.duck@email.com,,26,26,No,"111, north 2 \@road, Aio, Russia"
+
+3,"Risa Rose",,02-771,18,18,false,
+4,"Mark Job",'m.job@email.com',0021-2,,BLANK,True,

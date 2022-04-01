@@ -1,0 +1,46 @@
+# Reference: https://github.com/pre-commit/pre-commit
+# We can rewrite default `pre-commit` by git to python pre-commit by follow this step:
+#   (1) pre-commit uninstall & pre-commit install
+#   (2) cd .git/hooks & rm pre-commit
+#   (3) pre-commit install & pre-commit run --all-files
+# NOTE: see https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.3.0
+    hooks:
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+      - id: end-of-file-fixer
+        exclude: '.bumpversion.cfg'
+      - id: debug-statements
+        language_version: python3
+
+#  - repo: https://github.com/asottile/reorder_python_imports
+#    rev: v3.0.1
+#    hooks:
+#      - id: reorder-python-imports
+#        args: [--application-directories=.:src, --py38-plus]
+#
+#  - repo: https://github.com/asottile/pyupgrade
+#    rev: v2.31.1
+#    hooks:
+#      - id: pyupgrade
+#        args: [--py38-plus]
+#
+#  - repo: https://github.com/pre-commit/mirrors-mypy
+#    rev: v0.942
+#    hooks:
+#      - id: mypy
+#        files: ^src/
+#        args: [ ]
+
+  - repo: local
+    hooks:
+      - id: pytest-check
+        name: PyTest Runner
+        entry: pytest
+        language: system
+        pass_filenames: false
+        always_run: true

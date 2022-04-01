@@ -47,5 +47,3 @@ class PyFunctionNode(engine.Node):
             ps_node_name,
             kwargs.pop('processes', None)
         )
-
-

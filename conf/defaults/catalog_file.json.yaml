@@ -1,0 +1,38 @@
+#catalog-alias-name:
+#     type: 'importable-class:optional-method' # like 'core.io.database.PostgresTable:postgres_extra'
+#     properties:
+#          catalog_name: 'schema-name.table-name'
+#          catalog_type: 'table-type'
+#          schemas:
+#               column-alias-name:
+#                    datatype: 'datatype'
+#                    nullable: 'nullable-flag'
+#                    primary_key: 'nullable-flag'
+#                    description: 'column-description'
+#               ...
+#     retentions:
+#          retention_schemas: [ ]
+#               retention_value: 0
+#     informations:
+#          label: [ "example", "database", "catalog" ]
+#          milestone: "initialize"
+#          author: "demo"
+
+catalog_file_product:
+     type: 'src.core.io.dataframe.PandasExcelFrame'
+     properties:
+          catalog_name: "json/product_master_{year}{month}{year}.json"
+          catalog_type: 'file'
+          schemas:
+               product_id:
+                    datatype: "string"
+               product_type:
+                    datatype: "string"
+               attribute:
+                    datatype: "array"
+               modified: "string"
+          orient: 'records'
+          encoding: 'utf-8'
+     retentions:
+          retention_schemas: [ ]
+          retention_value: 0

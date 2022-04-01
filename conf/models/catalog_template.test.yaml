@@ -37,7 +37,7 @@ catalog_pg_db:
           retention_schemas: ['']
           retention_value: ""
 
-# Full template for file
+# Full template for files
 # Alias name when to use for reference in engine
 catalog_csv_file:
 

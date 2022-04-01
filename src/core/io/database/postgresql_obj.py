@@ -3,16 +3,18 @@ import re
 import itertools
 from pathlib import Path
 from typing import Any, Dict, Union, Optional
-from src.core.utils import path_join, str_to_bool
-from src.core.io import parse_config, load_dotenv
-from .plugins.postgresql_plugin import (
+from src.core.utils import str_to_bool
+from src.core.io.conf_parser import conf
+from src.core.io.path_utils import path_join
+from .plugins.postgresql_plug import (
     TableObject, ViewObject, MaterializedViewObject, FunctionObject, ProcedureObject
 )
 
 os.environ.setdefault('PROJ_PATH', path_join(Path(__file__).parent, '../../../..'))
-load_dotenv(path_join(os.environ['PROJ_PATH'], 'conf'))
-CONF_DB = parse_config(
-    f'{os.environ["PROJ_PATH"]}/conf/config.yaml')['datasets'][f'postgresql.{os.environ["PROJ_ENV"]}']
+conf.load_env(path_join(os.environ['PROJ_PATH'], 'conf/.env'))
+CONF_DB = conf.load(
+    f'{os.environ["PROJ_PATH"]}/conf/config.yaml'
+)['datasets'][f'postgresql.{os.environ["PROJ_ENV"]}']
 
 
 class PostgresColumn:
@@ -22,11 +24,11 @@ class PostgresColumn:
     ------
         (i)   <column-name>:
                     datatype: <datatype>
-                    unique: <False, [True, true, false]>
-                    nullable (optional): <null, [not null]>
+                    unique (optional): False, [True, true, false]
+                    nullable (optional): null, [not null]
                     defaults (optional): <defaults>
                     check (optional): <check-statement>
-                    primary_key (optional): <False, [True, true, false]>
+                    primary_key (optional): False, [True, true, false]
                     foreign_key (optional): <reference_table(reference_column)>
                     comment (optional): <comment>
 
@@ -36,8 +38,8 @@ class PostgresColumn:
         'unique', 'not null', 'null', 'primary key', 'references', 'constraint', 'check', 'default', '--'
     }
 
-    __slots__ = 'ps_col_datatype', 'ps_col_unique', 'ps_col_nullable', 'ps_col_check', 'ps_col_desc', \
-                'ps_col_primary_key', 'ps_col_foreign_key', 'ps_col_default'
+    __slots__ = ('ps_col_datatype', 'ps_col_unique', 'ps_col_nullable', 'ps_col_check', 'ps_col_desc',
+                 'ps_col_primary_key', 'ps_col_foreign_key', 'ps_col_default',)
 
     def __init__(
             self,
@@ -53,7 +55,8 @@ class PostgresColumn:
         self.ps_col_foreign_key: Optional[dict] = None
         if isinstance(ps_col, str):
             self.convert_from_string(ps_col)
-        self.convert_from_mapping(ps_col)
+        else:
+            self.convert_from_mapping(ps_col)
 
     def convert_from_string(self, _ps_col: str):
         """
@@ -231,8 +234,8 @@ class PostgresTable(TableObject):
     """
     # TODO: Change way to read config database connection with different environment
     CONF_DB = CONF_DB
-    CONF_DELIMITER = '.'
-    SCHEMA_NAME = 'public'
+    CONF_DELIMITER: str = '.'
+    SCHEMA_NAME: str = 'public'
 
     def __init__(
             self,
@@ -268,12 +271,12 @@ class PostgresTable(TableObject):
         return super(PostgresTable, self).__getattribute__(attr)
 
     def _schemas(self) -> Dict[str, PostgresColumn]:
-        """Generate raw configuration from schemas"""
+        """Generate raw configuration from `schemas` property"""
         return {k: PostgresColumn(v) for k, v in self.ps_cols.items()}
 
     @property
     def schemas(self):
-        """Mapping optional properties and raw schemas together"""
+        """Mapping optional property and `schemas` property together"""
         return self._schemas()
 
     @property

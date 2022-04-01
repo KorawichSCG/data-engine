@@ -1,8 +1,11 @@
 import os
-from pathlib import Path
-from src.core.engine import ConfigDefaultMapping, ConfigDefaultConvert
+import src.core.io.log_parser
+from src.core.engine.config_control import ConfigDefaultMapping
+from src.core.io.path_utils import path_join
 
-os.environ['PROJ_PATH'] = str(Path(__file__).parent)
+PROJ_PATH = os.environ.get('PROJ_PATH', path_join(os.path.dirname(__file__), '../../../..'))
+src.core.io.log_parser.setup_log(path_join(PROJ_PATH, 'conf/logging.yaml'))
+logger = src.core.io.log_parser.get_logger(__name__)
 
 
 def test_pg_db():
@@ -25,11 +28,14 @@ def test_pg_db():
 
 def test_local_csv():
     config01 = ConfigDefaultMapping('catalog_file_customer', 'catalog', 'csv')
-    print(config01.model.ps_sub_path)
-    print(config01.model.ps_file_name)
     print("*" * 150)
+    for k, v in config01.model.schemas.items():
+        print(f"{k} = {v.details}")
+    print("-" * 150)
+    # print("*" * 150)
 
 
 if __name__ == '__main__':
     # test_pg_db()
     test_local_csv()
+    # print(PROJ_PATH)

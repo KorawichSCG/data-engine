@@ -1,0 +1,40 @@
+#-----------------------------------------------------------------------
+#                        configuration logging
+#-----------------------------------------------------------------------
+version: 1
+disable_existing_loggers: false  # `true` will disable logging from another module
+formatters:
+     defaults:
+          (): 'src.core.io.log_parser.UTCFormatter'
+          format: '%(asctime)s (%(thread)05d) %(levelname)-8s|: %(message)s'
+          datefmt: '%Y-%m-%d %H:%M:%S'
+     access:
+          format: "%(asctime)s.%(msecs)04d (%(name)s:%(threadName)s[%(thread)d]) - %(lineno)d %(levelname)-8s: %(message)s"
+          datefmt: "%Y-%m-%d %H:%M:%S"
+     fsting:
+          format: "{asctime}.{msecs:.0f} {levelname:<8s} ({name}:{threadName}) {message}"
+          datefmt: "%Y-%m-%d %H:%M:%S"
+          style: "{"
+          validate: "True"
+filters:
+     no_console_filter:
+          (): 'src.core.io.log_parser.NoConsoleFilter'
+handlers:
+     console:
+          class: 'logging.StreamHandler'
+          formatter: 'defaults'
+          filters: [ 'no_console_filter' ]
+          level: 'DEBUG'
+          stream: 'ext://sys.stderr'  # `sys.stdout` will change log in printing level
+root:
+     level: "DEBUG"
+     handlers: [ "console" ]
+loggers:
+     src.core.io:
+          handlers: [ "console" ]
+          level: "DEBUG"
+          propagate: false
+     src.core.engine:
+          handlers: [ "console" ]
+          level: "INFO"
+          propagate: false

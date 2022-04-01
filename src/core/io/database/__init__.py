@@ -1,1 +1,1 @@
-from .postgresql import PostgresTable
+from .postgresql_obj import PostgresTable

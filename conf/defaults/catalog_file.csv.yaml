@@ -1,8 +1,31 @@
+#catalog-alias-name:
+#     type: 'importable-class:optional-method' # like 'core.io.database.PostgresTable:postgres_extra'
+#     properties:
+#          catalog_name: 'schema-name.table-name'
+#          catalog_type: 'table-type'
+#          schemas:
+#               column-alias-name:
+#                    datatype: 'datatype'
+#                    nullable: 'nullable-flag'
+#                    primary_key: 'nullable-flag'
+#                    description: 'column-description'
+#               ...
+#          header: 0
+#          delimiter: ','
+#          encoding: 'utf-8'
+#     retentions:
+#          retention_schemas: [ ]
+#               retention_value: 0
+#     informations:
+#          label: [ "example", "csv", "catalog" ]
+#          milestone: "initialize"
+#          author: "demo"
+
 catalog_file_customer:
-     type: 'src.core.io.storage.LocalCSVFile'
+     type: 'src.core.io.dataframe.PandasCSVFrame'
      properties:
-          catalog_name: 'sandbox/data/customer_*'
-          catalog_type: 'csv'
+          catalog_name: "csv/customer_{year}{month}.csv"
+          catalog_type: 'file'
           schemas:
                customer_id:
                     datatype: "string"
@@ -15,8 +38,42 @@ catalog_file_customer:
                     datatype: "integer"
                     nullable: "false"
                     default: "000000000"
-          header: 'true'
+          header: 0
           encoding: 'utf-8'
+     retentions:
+          retention_schemas: [ ]
+          retention_value: 0
+
+catalog_file_billing:
+     type: 'src.core.io.dataframe.PandasCSVFrame'
+     properties:
+          catalog_name: "csv/billing_{year}{month}{day}.csv"
+          catalog_type: 'file'
+          schemas:
+               cust_id:
+                    datatype: "integer"
+                    nullable: "false"
+                    description: "ID of customer from customer file"
+               bill_doc:
+                    datatype: "string"
+                    nullable: "false"
+               net_value:
+                    datatype: "float"
+                    nullable: "false"
+               bill_qty:
+                    datatype: "float"
+                    nullable: "false"
+               bill_datetime:
+                    datatype: "timestamp"
+                    nullable: "false"
+               sales_number:
+                    datatype: "integer"
+                    nullable: "true"
+          header: 0
+          encoding: 'utf-8'
+          delimiter: '|'
+          skipfooter: 1
+          comment: '#'
      retentions:
           retention_schemas: [ ]
           retention_value: 0

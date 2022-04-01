@@ -1,33 +1,8 @@
 import pandas as pd
-from typing import Dict, Any, Optional, List, Union, Tuple
 import psycopg
+from typing import Dict, Any, Optional, List, Union, Tuple
 from psycopg.sql import SQL
 from psycopg.rows import tuple_row
-
-
-class HideMeta(type):
-    """
-    Reference:
-    `https://stackoverflow.com/questions/23181442/how-to-hide-remove-some-methods-in-inherited-class-in-python`
-    """
-    def __new__(mcs, cls_name, cls_bases, cls_dict):
-        cls_dict.setdefault("__excluded__", [])
-        out_cls = super(HideMeta, mcs).__new__(mcs, cls_name, cls_bases, cls_dict)
-
-        def __getattribute__(self, name):
-            if name in cls_dict["__excluded__"]:
-                raise AttributeError(name)
-            else:
-                return super(out_cls, self).__getattribute__(name)
-
-        out_cls.__getattribute__ = __getattribute__
-
-        def __dir__(self):
-            return sorted((set(dir(out_cls)) | set(self.__dict__.keys())) - set(cls_dict["__excluded__"]))
-
-        out_cls.__dir__ = __dir__
-
-        return out_cls
 
 
 class PostgresConn:
@@ -542,7 +517,7 @@ class TableObject(PostgresObject):
                          else ''
                     end                                                     as with_time_zone
             ,		case when character_maximum_length is not null and character_maximum_length > 1
-                         then concat('( ', character_maximum_length, ' )') 
+                         then concat('( ', character_maximum_length, ' )')
                          when numeric_precision is not null and numeric_scale > 0
                          then concat('( ', numeric_precision, ', ', numeric_scale, ' )')
                          when numeric_precision is not null and numeric_scale = 0 and udt_name not like 'int%'
@@ -578,7 +553,7 @@ class TableObject(PostgresObject):
                     end                                                             as foreign_table_name
             ,	    case when tc.constraint_type = 'FOREIGN KEY'
                          then ccu.column_name else null
-                    end                                                             as foreign_column_name 
+                    end                                                             as foreign_column_name
             ,		case when tc.constraint_type = 'PRIMARY KEY'
                          then format('(primary key ( %s )', ccu.column_name)
                          when tc.constraint_type = 'FOREIGN KEY'
@@ -592,7 +567,7 @@ class TableObject(PostgresObject):
             left join {self.db_name}.information_schema.constraint_column_usage  as ccu
                 on ccu.constraint_name = tc.constraint_name
             left join {self.db_name}.information_schema.check_constraints        as cc
-                on cc.constraint_name = tc.constraint_name 
+                on cc.constraint_name = tc.constraint_name
             where tc.table_schema = '{self.schema_name}' and tc.table_name = '{self.tbl_name}'
             and tc.constraint_name not like '%not_null'"""
         ).reset_index(drop=True).to_dict('index')
@@ -805,7 +780,3 @@ class ProcedureObject(PostgresObject):
                 $store_proc$
     """
     OBJECT_TYPE = "procedure"
-
-
-if __name__ == '__main__':
-    pass

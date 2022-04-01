@@ -4,6 +4,7 @@ import math
 import hashlib
 from typing import AnyStr, Iterable, List, Optional, Union
 from distutils.util import strtobool
+from chardet import detect
 import re
 import pandas as pd
 import string
@@ -231,3 +232,16 @@ def str_to_bool(content: Union[str, bool], force: bool = True) -> bool:
         except ValueError:
             return False if force else bool(strtobool(content))
     return content
+
+
+def get_encoding_type(file):
+    with open(file, 'rb') as f:
+        raw_data = f.read()
+    return detect(raw_data)['encoding']
+
+
+def correctSubtitleEncoding(filename, newFilename, encoding_from, encoding_to='UTF-8'):
+    with open(filename, 'r', encoding=encoding_from) as fr:
+        with open(newFilename, 'w', encoding=encoding_to) as fw:
+            for line in fr:
+                fw.write(line[:-1]+'\r\n')

@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from src.core.io.dataframe.plugins.file_plug import FileObject
 
 
 class PandasDataFrame:
@@ -43,7 +44,7 @@ class PandasDataFrame:
     @property
     def full_path(self):
         """
-        Local: file://localhost/path/to/table.parquet
+        Local: files://localhost/path/to/table.parquet
         S3: s3://bucket/partition_dir
         """
         return os.path.join(self.server_conn, self.sub_path, f"{self.file_name}.{self.file_type}")
@@ -60,5 +61,30 @@ class PandasDataFrame:
         return None
 
 
-class PandasCSV:
-    pass
+class PandasCSVObject:
+    """Pandas DataFrame for parse `csv` file"""
+    OBJECT_TYPE = "csv"
+    __excluded__ = {'save'}
+
+    def __init__(
+            self,
+            server_conn: str,
+            sub_path: str,
+            file_name: str,
+            file_type: str = 'csv'
+    ):
+        self.server_conn: str = server_conn
+        self.sub_path: str = sub_path
+        self.file_name: str = file_name
+        self.file_type: str = file_type
+        if self.file_type not in {'csv', 'txt'}:
+            raise
+        self.file_obj: FileObject = FileObject(
+            server_conn,
+            sub_path,
+            file_name,
+            file_type
+        )
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.file_name})'
