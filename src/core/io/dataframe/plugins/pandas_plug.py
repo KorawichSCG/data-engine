@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from src.core.io.dataframe.plugins.file_plug import FileObject
 
 
 class PandasDataFrame:
@@ -67,15 +68,23 @@ class PandasCSVObject:
 
     def __init__(
             self,
+            server_conn: str,
+            sub_path: str,
+            file_name: str,
+            file_type: str = 'csv'
+    ):
+        self.server_conn: str = server_conn
+        self.sub_path: str = sub_path
+        self.file_name: str = file_name
+        self.file_type: str = file_type
+        if self.file_type not in {'csv', 'txt'}:
+            raise
+        self.file_obj: FileObject = FileObject(
             server_conn,
             sub_path,
             file_name,
             file_type
-    ):
-        self.file_name: str = file_name
-        # super(PandasCSVFrame, self).__init__(
-        #     server_conn,
-        #     sub_path,
-        #     file_name,
-        #     file_type
-        # )
+        )
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.file_name})'

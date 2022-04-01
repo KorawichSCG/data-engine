@@ -13,7 +13,7 @@ from src.core.utils import merge_dicts, import_string
 from src.core.io.conf_parser import conf
 from src.core.io.path_utils import path_join
 from src.core.io.database import postgresql_obj
-from core.io.dataframe import local_obj
+from src.core.io.dataframe import pandas_obj
 from pathlib import Path
 
 logging.basicConfig(level=logging.WARNING)
@@ -249,7 +249,7 @@ class ConfigDefaultMapping(ConfigMapping):
     CONF_SUB_PATH: ClassVar[str] = 'defaults'
     CLASS_VALIDATE: List[object] = [
         postgresql_obj.PostgresTable,
-        local_obj.PandasCSVFrame
+        pandas_obj.PandasCSVFrame
     ]
 
 
@@ -257,5 +257,5 @@ class ConfigDefaultConvert(ConfigConvert):
     CONF_SUB_PATH: ClassVar[str] = 'defaults'
     CLASS_VALIDATE: List[object] = [
         postgresql_obj.PostgresTable,
-        local_obj.PandasCSVFrame
+        pandas_obj.PandasCSVFrame
     ]

@@ -170,13 +170,15 @@ class PandasCSVFrame(PandasCSVObject):
         self.ps_cat_name = properties.pop('catalog_name', catalog_name).split(self.CONF_DELIMITER)
         _last_path: str = self.ps_cat_name.pop(-1)
         _remain_path: str = '/'.join(self.ps_cat_name)
+
+        # TODO: Check file extension be `.csv`, `.tsv`, or `.txt`
         if '.' in _last_path:
             self.ps_file_name = _last_path
             self.ps_sub_path = f"{self.SUB_PATH}/{_remain_path}" if _remain_path \
                 else self.SUB_PATH
         else:
             _last_path = f"/{_last_path}" if _last_path else ""
-            self.ps_file_name = '*'
+            self.ps_file_name = '*.csv'
             self.ps_sub_path = f"{self.SUB_PATH}/{_remain_path}{_last_path}" if _remain_path \
                 else f"{self.SUB_PATH}{_last_path}"
         self.ps_file_type: str = properties.pop('catalog_name', catalog_name)

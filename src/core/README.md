@@ -66,6 +66,14 @@ Database
 --------
 - Postgres SQL (`psycopg`)
 
+File
+----
+If it is possible, we will use base lib for read any file.
+
+- csv (`csv`)
+- excel (`openpyxl`)
+- parquet (`pyarrow`)
+
 DataFrame
 ---------
 Order by data 1,000,000,000 rows x 9 columns

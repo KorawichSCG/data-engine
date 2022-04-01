@@ -24,7 +24,7 @@
 catalog_file_customer:
      type: 'src.core.io.dataframe.PandasCSVFrame'
      properties:
-          catalog_name: "csv/customer_*.csv"
+          catalog_name: "csv/customer_{year}{month}.csv"
           catalog_type: 'file'
           schemas:
                customer_id:
@@ -47,7 +47,7 @@ catalog_file_customer:
 catalog_file_billing:
      type: 'src.core.io.dataframe.PandasCSVFrame'
      properties:
-          catalog_name: "csv/billing_*.csv"
+          catalog_name: "csv/billing_{year}{month}{day}.csv"
           catalog_type: 'file'
           schemas:
                cust_id:
@@ -72,6 +72,8 @@ catalog_file_billing:
           header: 0
           encoding: 'utf-8'
           delimiter: '|'
+          skipfooter: 1
+          comment: '#'
      retentions:
           retention_schemas: [ ]
           retention_value: 0

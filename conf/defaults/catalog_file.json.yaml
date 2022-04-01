@@ -10,8 +10,6 @@
 #                    primary_key: 'nullable-flag'
 #                    description: 'column-description'
 #               ...
-#          header: 'header-number'
-#          sheet_name: 'name-of-sheet-to-read'
 #     retentions:
 #          retention_schemas: [ ]
 #               retention_value: 0
@@ -20,27 +18,21 @@
 #          milestone: "initialize"
 #          author: "demo"
 
-catalog_file_promotion:
+catalog_file_product:
      type: 'src.core.io.dataframe.PandasExcelFrame'
      properties:
-          catalog_name: "excel/product_promotion_{year}.xlsx"
+          catalog_name: "json/product_master_{year}{month}{year}.json"
           catalog_type: 'file'
           schemas:
                product_id:
                     datatype: "string"
-                    nullable: "false"
-                    description: "ID of product which random generate by server"
-               promo_start:
-                    datatype: "date"
-               promo_end:
-                    datatype: "date"
-                    default: "9999-12-31"
-               promo_percentage: "decimal( 6, 2 ) default '0.0'"
-          header: 0
+               product_type:
+                    datatype: "string"
+               attribute:
+                    datatype: "array"
+               modified: "string"
+          orient: 'records'
           encoding: 'utf-8'
-          sheet_name: ["main", 3]
-          skiprows: 1
-          comment: '#'
      retentions:
           retention_schemas: [ ]
           retention_value: 0

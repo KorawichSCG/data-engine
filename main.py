@@ -31,6 +31,7 @@ def test_local_csv():
     print("*" * 150)
     for k, v in config01.model.schemas.items():
         print(f"{k} = {v.details}")
+    print("-" * 150)
     # print("*" * 150)
 
 
