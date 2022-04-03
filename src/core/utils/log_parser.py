@@ -47,6 +47,22 @@ def setup_log(logging_config: Optional[str] = None):
         logging.basicConfig(level=DEFAULT_LEVEL)
 
 
+# def setup_logging(logger=None, logger_name=None, level="DEBUG", clear=True):
+#     if logger is None and logger_name is None:
+#         raise ValueError("Provide either logger object or logger name")
+#     logger = logger or logging.getLogger(logger_name)
+#     handle = logging.StreamHandler()
+#     formatter = logging.Formatter(
+#         "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s -- %(message)s"
+#     )
+#     handle.setFormatter(formatter)
+#     if clear:
+#         logger.handlers.clear()
+#     logger.addHandler(handle)
+#     logger.setLevel(level)
+#     return logger
+
+
 def _create_logger(name):
     return logging.getLogger(name)
 

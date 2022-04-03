@@ -22,12 +22,13 @@ logger.setLevel(logging.DEBUG)
 
 os.environ.setdefault('PROJ_PATH', path_join(Path(__file__).parent, '../../..'))
 conf.load_env(path_join(os.environ['PROJ_PATH'], 'conf/.env'))
+globs = conf.load(path_join(os.environ['PROJ_PATH'], 'conf/parameters.yaml'))
 
 
 class ConfigParser:
     """
     Create config instance from `yaml` configuration files after convert to
-    compressed `json` files. This class will validate structure of config keys
+    compressed `json` files. This class have validate config schemas of config keys
     """
     CONF_SUB_PATH: ClassVar[str] = 'defaults'
     CLASS_VALIDATE: ClassVar[List[object]] = []
@@ -42,7 +43,7 @@ class ConfigParser:
             conf_file_suffix: Optional[str] = None,
             conf_cache_time: Optional[Dict[str, Any]] = None,
             conf_map_type: str = 'type',
-            conf_schema: str = 'conf_schemas',
+            conf_schema: str = 'schemas',
             conf_file_suffix_extend: str = '.',
             conf_compress: str = 'gzip',
             verbose: bool = True
@@ -101,14 +102,30 @@ class ConfigParser:
         """
         return self.get_config_cache(self.conf_name)
 
+    # @property
+    # def conf_schemas(self) -> Dict[str, Any]:
+    #     """
+    #     configuration schemas
+    #     example
+    #     -------
+    #         schemas/conf_schemas:
+    #             <conf-sub-path>:
+    #                 <conf-prefix>.<conf-suffix>: [ ]
+    #                 ...
+    #     """
+    #     _conf_schema: Dict = self.get_config(self.conf_schema).pop(self.CONF_SUB_PATH, {})
+    #     return _conf_schema.get(f'{self.conf_file_prefix}{self.conf_file_suffix}', {}) or _conf_schema.get(
+    #         self.conf_file_prefix, {}
+    #     )
+
     @property
-    def conf_schemas(self) -> Dict[str, Any]:
+    def conf_schemas(self) -> List[str]:
         """
         configuration schemas
         """
         _conf_schema: Dict = self.get_config(self.conf_schema).pop(self.CONF_SUB_PATH, {})
-        return _conf_schema.get(f'{self.conf_file_prefix}{self.conf_file_suffix}', {}) or _conf_schema.get(
-            self.conf_file_prefix, {}
+        return _conf_schema.get(f'{self.conf_file_prefix}{self.conf_file_suffix}', []) or _conf_schema.get(
+            self.conf_file_prefix, []
         )
 
     @property
@@ -120,9 +137,7 @@ class ConfigParser:
             date_format: str = '%Y-%m-%d %H:%M:%S',
             encoding: str = 'utf-8'
     ) -> NoReturn:
-        """
-        Convert configuration data from `yaml` to `json` files
-        """
+        """Convert configuration data from `yaml` to `json` files"""
         if self.verbose:
             logger.info(f"Write config `json` files to {self.conf_cache_name!r}")
 
@@ -163,11 +178,16 @@ class ConfigParser:
     @property
     def validate_schemas(self) -> bool:
         """Validate config schemas with must-have keys"""
-        return set(self.conf_schemas.keys()).issubset(set(self.conf_data.keys())) if self.conf_schemas else True
+        # Version 2
+        if self.verbose:
+            logger.debug("Validate config schemas between input config and schemas config")
+
+        return set(self.conf_schemas).issubset(set(self.conf_data.keys())) if self.conf_schemas else True
+        # return set(self.conf_schemas.keys()).issubset(set(self.conf_data.keys())) if self.conf_schemas else True
 
     @property
     def validate_class(self) -> bool:
-        """Validate type of config match with class variable `CLASS_VALIDATE`"""
+        """Validate type of config that match with class variable `CLASS_VALIDATE`"""
         if self.CLASS_VALIDATE:
             return any(self.conf_type.endswith(cls.__name__) for cls in self.CLASS_VALIDATE)
         return False
@@ -219,29 +239,45 @@ class ConfigConvert(ConfigParser):
     @property
     def validate_sub_path(self):
         """Validate class variable `CONF_SUB_PATH` value is exists in `CONF_PATH`"""
+        # TODO: add validate sub_path logic
         return True
 
 
 class ConfigMapping(ConfigParser):
-    """Mapping class instance in `CLASS_VALIDATE` to property `model` and change itself to object"""
+    """
+    Mapping class instance with `CLASS_VALIDATE` to `cls.model` property
+    and change itself to object
+    """
     __slots__ = 'model'
 
     def __init__(
             self,
             conf_name: str,
             conf_file_prefix: Optional[str] = None,
-            conf_file_suffix: Optional[str] = None
+            conf_file_suffix: Optional[str] = None,
+            external_parameters: Optional[dict] = None,
+            global_parameters: Optional[dict] = None
     ):
+        """
+        Create instance of config class
+        :params str conf_name:
+        :params str conf_file_prefix:
+        :params str conf_file_suffix:
+        :params dict external_parameters:
+        :params dict global_parameters:
+        """
         super(ConfigMapping, self).__init__(conf_name, conf_file_prefix, conf_file_suffix)
         if self.verbose:
             logger.info(f"Start mapping configuration with type: {self.conf_type}")
-
+        self.ext_params: dict = external_parameters or {}
+        self.glob_params: dict = global_parameters or {}
         _type_cls: Callable = import_string(self.conf_type)
-        self.model: Any = _type_cls(self.conf_name, **self.conf_data)
+        self.model: Any = _type_cls(self.conf_name, self.ext_params, self.glob_params, **self.conf_data)
 
     @property
     def validate_sub_path(self):
         """Validate class variable `CONF_SUB_PATH` value is exists in `CONF_PATH`"""
+        # TODO: add validate sub_path logic
         return True
 
 

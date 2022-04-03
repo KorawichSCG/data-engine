@@ -240,6 +240,8 @@ class PostgresTable(TableObject):
     def __init__(
             self,
             catalog_name: str,
+            external_params: dict,
+            global_params: dict,
             properties: Dict[str, Any],
             **kwargs
     ):

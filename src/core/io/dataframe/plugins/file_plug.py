@@ -58,14 +58,11 @@ class FileObject:
         Create file object instance and convert regular expression with parameters
         Example
         -------
-            (i)     root_path: <pure-root-path contain 'C://user/path/'>
-                    sub_path: <regex-sub-path>
-                        -   csv/customer/YYYY/MM/
-                        -   csv/customer/@{year}/@{month}
-                    file_name: <regex-file-name>
-                        -   customer_@{year}@{month}@{day}.csv
+            (i)     root_path: C://user/path/
+                    sub_path: csv/customer/{year}/{month}
+                    file_name: customer_{year}{month}{day}.csv
 
-            (ii)    csv/billing_{product_group_id}_{year}{month}{day}.csv
+            (ii)    full_path: C://user/path/csv/billing_{product_group_id}_{year}{month}{day}.csv
         """
         self.root_path: str = root_path.removesuffix('/')
         self.sub_path: str = sub_path.removesuffix('/')
@@ -95,25 +92,29 @@ class FileObject:
             if not self.files:
                 logger.warning(f'Files does not found with regex: {self.file_name_search}')
 
-    def __generate_params(self, _params: Optional[dict] = None):
+    def __generate_params(
+            self,
+            _params: Optional[dict] = None,
+            _date_fmt: str = '%Y-%m-%d %H:%M:%S'
+    ):
         """Mapping input with needed parameters like `run_date`"""
         _params = _params or {}
         if any(need in _params for need in {'timestamp', 'run_date'}):
             if 'run_date' not in _params:
                 _params = merge_dicts(
                     _params,
-                    {'run_date': datetime.datetime.fromtimestamp(_params.get('timestamp')).strftime('%Y-%m-%d %H:%M:%S')}
+                    {'run_date': datetime.datetime.fromtimestamp(_params.get('timestamp')).strftime(_date_fmt)}
                 )
             elif 'timestamp' not in _params:
                 _params = merge_dicts(
                     _params,
-                    {'timestamp': round(datetime.datetime.fromisoformat(_params.get('run_date')).timestamp())}
+                    {'timestamp': round(datetime.datetime.strptime(_params.get('run_date'), _date_fmt).timestamp())}
                 )
         else:
             _params = merge_dicts(
                 _params,
                 {
-                    'run_date': datetime.datetime.now(pytz.timezone("Asia/Bangkok")).strftime('%Y-%m-%d %H:%M:%S'),
+                    'run_date': datetime.datetime.now(pytz.timezone("Asia/Bangkok")).strftime(_date_fmt),
                     'timestamp': round(datetime.datetime.now(pytz.timezone("Asia/Bangkok")).timestamp())
                 }
             )
@@ -121,6 +122,10 @@ class FileObject:
             p: datetime.datetime.fromtimestamp(_params.get('timestamp')).strftime(fmt)
             for p, fmt in self.MAP_DATE_PARAM.items()
         }, _params)
+
+    @property
+    def file_found(self):
+        return len(self.files)
 
     @property
     def get_files(self) -> Generator:

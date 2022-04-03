@@ -124,7 +124,3 @@ class ThreadWithControl(threading.Thread):
         due to a bug in PyThreadState_SetAsyncExc
         """
         self.raise_exc(SystemExit)
-
-
-if __name__ == '__main__':
-    pass

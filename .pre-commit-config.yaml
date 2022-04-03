@@ -11,11 +11,18 @@ repos:
       - id: trailing-whitespace
       - id: check-yaml
       - id: check-json
+      - id: check-xml
       - id: check-added-large-files
       - id: end-of-file-fixer
         exclude: '.bumpversion.cfg'
       - id: debug-statements
         language_version: python3
+      - id: check-docstring-first
+#      - id: double-quote-string-fixer
+#      - id: fix-encoding-pragma
+#        args: ['--remove']
+      - id: pretty-format-json
+        args: ['--autofix', '--no-sort-keys']
 
 #  - repo: https://github.com/asottile/reorder_python_imports
 #    rev: v3.0.1
@@ -44,3 +51,15 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+
+#  - repo: https://github.com/ambv/black
+#    rev: 21.11b1
+#    hooks:
+#      - id: black
+#        language_version: python3.9
+#
+#  - repo: https://gitlab.com/pycqa/flake8
+#    rev: 3.8.4
+#    hooks:
+#      - id: flake8

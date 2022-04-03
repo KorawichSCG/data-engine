@@ -1,0 +1,12 @@
+#-----------------------------------------------------------------------
+#                        rule parameters
+#-----------------------------------------------------------------------
+# Set rules for data engine such as needed package arguments
+rules:
+     pandas:
+          csv:
+               header: ['int', 'list', 'str']
+               delimiter: ['str']
+          excel:
+               header: ['']
+               sheet: ['int', 'str', 'list']

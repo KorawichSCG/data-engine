@@ -25,7 +25,7 @@ catalog_file_customer:
      type: 'src.core.io.dataframe.PandasCSVFrame'
      properties:
           catalog_name: "csv/customer_{year}{month}.csv"
-          catalog_type: 'file'
+          catalog_type: 'csv'
           schemas:
                customer_id:
                     datatype: "string"
@@ -40,6 +40,7 @@ catalog_file_customer:
                     default: "000000000"
           header: 0
           encoding: 'utf-8'
+          engine: 'python'
      retentions:
           retention_schemas: [ ]
           retention_value: 0
@@ -48,7 +49,7 @@ catalog_file_billing:
      type: 'src.core.io.dataframe.PandasCSVFrame'
      properties:
           catalog_name: "csv/billing_{year}{month}{day}.csv"
-          catalog_type: 'file'
+          catalog_type: 'csv'
           schemas:
                cust_id:
                     datatype: "integer"
