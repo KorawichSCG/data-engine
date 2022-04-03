@@ -15,7 +15,6 @@ logger.setLevel(logging.DEBUG)
 
 # (\\)?(\$)(\{?([A-Z0-9_]+)\}?)
 # RE_DOTENV_VAR: re.Pattern = re.compile(r'(\\)?(\$)({?([A-Z0-9_]+)}?)', re.IGNORECASE)
-
 RE_DOTENV_VAR: re.Pattern = re.compile(r"""
     (\\)?    # is it escaped with a backslash?
     (\$)                # literal $
@@ -151,6 +150,7 @@ class ParseConfig:
                 f'{self.__class__.__name__} require "pyyaml >= 5". '
                 'Please install this module into your environment'
             )
+        # TODO: add validate path before parse to `self`. If not found, it will add `PROJ_PATH` before.
         self.__path: Optional[str] = path
         self.__data: Optional[str] = data
         self.__parameters: dict = parameter
@@ -288,7 +288,7 @@ class ParseConfig:
     ):
         """Parse content data to `yaml.load`"""
         # TODO: change `__main__` dynamic to `__name__` with config logging
-        logger.debug(f"Start load content in __name__ is {__name__}")
+        logger.debug(f"Start load content in __name__ is {__name__} ...")
         return loader(contents)
 
     @staticmethod
@@ -360,9 +360,3 @@ class ParseConfig:
 conf: callable = ParseConfig
 
 __all__ = ['conf']
-
-if __name__ == '__main__':
-    conf.load_env('../tests/mockups/.test.env')
-    config = conf.load('../tests/mockups/config.test.yaml', parameter={'inbound_param01': 'config_table_name'})
-    print(config.project_name)
-    print(config.statement)

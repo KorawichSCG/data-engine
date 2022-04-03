@@ -1,5 +1,5 @@
+import os
 import sys
-import ast
 import math
 import hashlib
 from typing import AnyStr, Iterable, List, Optional, Union
@@ -63,7 +63,7 @@ def split_str(source, sep: Optional[str] = None):
         >> list(splitStr('   A  b  c. '))
         ['', 'A', 'b', 'c.', '']
     """
-    sep = sep or "\s+"
+    sep = sep or r'\s+'
     if sep == '':
         return iter(source)
     # return (_.group(1) for _ in re.finditer(f'(?:^|{sep})((?:(?!{sep}).)*)', source))
@@ -76,18 +76,10 @@ def split_str(source, sep: Optional[str] = None):
 def isplit(source, sep=None, regex=False):
     """
     generator version of str.split()
-
-    :param source:
-        source string (unicode or bytes)
-
-    :param sep:
-        separator to split on.
-
-    :param regex:
-        if True, will treat sep as regular expression.
-
-    :returns:
-        generator yielding elements of string.
+    :param source: source string (unicode or bytes)
+    :param sep: separator to split on.
+    :param regex: if True, will treat sep as regular expression.
+    :returns: generator yielding elements of string.
 
     usage:
         >> print list(isplit("abcb","b"))
@@ -178,24 +170,32 @@ def hash_string(input_value: str, num_length: int = 8, method='sha256') -> str:
     """
     return str(int(getattr(hashlib, method)(input_value.encode('utf-8')).hexdigest(), 16) % 10 ** num_length)
 
+def tokenize(*args, **kwargs):
+    """Deterministic token
 
-def random_sting(num_length: int = 8) -> str:
+    (modified from dask.base)
+
+    >>> tokenize([1, 2, '3'])
+    '9d71491b50023b06fc76928e6eddb952'
+
+    >>> tokenize('Hello') == tokenize('Hello')
+    True
+    """
+    if kwargs:
+        args += (kwargs,)
+    try:
+        return hashlib.md5(str(args).encode()).hexdigest()
+    except ValueError:
+        # FIPS systems: https://github.com/fsspec/filesystem_spec/issues/380
+        return hashlib.md5(str(args).encode(), usedforsecurity=False).hexdigest()
+
+
+def random_string(num_length: int = 8) -> str:
     """
     random string from uppercase ASCII and number 0-9
     """
     # TODO: dynamic random with input group of string such as __lower__, __special__, __upper__
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=num_length))
-
-
-def convert_str_list_to_list(str_list: str) -> list:
-    """
-    Get list of run_date from list string of run_date
-    usage
-    -----
-        >> print(convert_str_list_to_list("['2021-01-02', '2021-01-03']"))
-        ['2021-01-02', '2021-01-03']
-    """
-    return ast.literal_eval(str_list)
 
 
 def sort_by_priority_list(values: Iterable, priority: List) -> List:
@@ -221,19 +221,6 @@ def sort_by_priority_list(values: Iterable, priority: List) -> List:
     return sorted(values, key=priority_getter)
 
 
-def str_to_bool(content: Union[str, bool], force: bool = True) -> bool:
-    """
-    Convert string content to boolean type that mean `True` values are y, yes, t, true, on and 1 and
-    False values are n, no, f, false, off and 0. Raises ValueError if val is anything else.
-    """
-    if isinstance(content, str):
-        try:
-            return bool(strtobool(content))
-        except ValueError:
-            return False if force else bool(strtobool(content))
-    return content
-
-
 def get_encoding_type(file):
     with open(file, 'rb') as f:
         raw_data = f.read()
@@ -245,3 +232,36 @@ def correctSubtitleEncoding(filename, newFilename, encoding_from, encoding_to='U
         with open(newFilename, 'w', encoding=encoding_to) as fw:
             for line in fr:
                 fw.write(line[:-1]+'\r\n')
+
+
+def prefixed_environ():
+    return {f"${{{key}}}": value for key, value in os.environ.items()}
+
+
+def build_name_function(max_int):
+    """Returns a function that receives a single integer
+    and returns it as a string padded by enough zero characters
+    to align with maximum possible integer
+
+    >>> name_f = build_name_function(57)
+
+    >>> name_f(7)
+    '07'
+    >>> name_f(31)
+    '31'
+    >>> build_name_function(1000)(42)
+    '0042'
+    >>> build_name_function(999)(42)
+    '042'
+    >>> build_name_function(0)(0)
+    '0'
+    """
+    # handle corner cases max_int is 0 or exact power of 10
+    max_int += 1e-8
+
+    pad_length = int(math.ceil(math.log10(max_int)))
+
+    def name_function(i):
+        return str(i).zfill(pad_length)
+
+    return name_function

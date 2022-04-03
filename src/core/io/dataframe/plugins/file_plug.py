@@ -24,24 +24,26 @@ class FileObject:
                 sub_path: 'sub_path/*'
                 file_name: 'file_*.csv'
     """
-
     MAP_DATE_PARAM: dict = {
         # If `run_date` is '2022-03-01 15:30:59.599', the mapping will be
         'year': '%Y',  # 2022
         'year-short': '%y',  # 22
         # 'month-exc': '%-m',  # 3
         'month': '%m',  # 03
+        'month-exc': ('%#m' if os.name == 'nt' else '%-m'),  # 3 NOTE: `#` use in window but linux is `-`
         'month-short': '%B',  # Mar
         'month-long': '%b',  # March
         # 'day-exc': '%e',  # 1
         'day': '%d',  # 01
+        'date': '%a',  # Tue
+        'date-long': '%A',  # Tuesday
         'hour': '%H',  # 15
         'hour-12': '%I',  # 03
         'minute': '%M',  # 15
         'second': '%S',  # 15
     }
-    MODE_BYTE = {'xlsx', 'xls'}
-    FILE_FILTER = {'~', '$', '@', '!', '^'}
+    MODE_BYTE: set = {'xlsx', 'xls'}
+    FILE_FILTER: set = {'~', '$', '@', '!', '^'}
 
     def __init__(
             self,
@@ -58,14 +60,11 @@ class FileObject:
         Create file object instance and convert regular expression with parameters
         Example
         -------
-            (i)     root_path: <pure-root-path contain 'C://user/path/'>
-                    sub_path: <regex-sub-path>
-                        -   csv/customer/YYYY/MM/
-                        -   csv/customer/@{year}/@{month}
-                    file_name: <regex-file-name>
-                        -   customer_@{year}@{month}@{day}.csv
+            (i)     root_path: C://user/path/
+                    sub_path: csv/customer/{year}/{month}
+                    file_name: customer_{year}{month}{day}.csv
 
-            (ii)    csv/billing_{product_group_id}_{year}{month}{day}.csv
+            (ii)    full_path: C://user/path/csv/billing_{product_group_id}_{year}{month}{day}.csv
         """
         self.root_path: str = root_path.removesuffix('/')
         self.sub_path: str = sub_path.removesuffix('/')
@@ -95,32 +94,42 @@ class FileObject:
             if not self.files:
                 logger.warning(f'Files does not found with regex: {self.file_name_search}')
 
-    def __generate_params(self, _params: Optional[dict] = None):
-        """Mapping input with needed parameters like `run_date`"""
+    def __generate_params(
+            self,
+            _params: Optional[dict] = None,
+            _date_fmt: str = '%Y-%m-%d %H:%M:%S',
+            _date_timezone: str = 'Asia/Bangkok',
+            _p_run_date: str = 'run_date',
+            _p_timestamp: str = 'timestamp'
+    ):
+        """Mapping input with needed parameters like `run_date`, `timestamp`"""
         _params = _params or {}
-        if any(need in _params for need in {'timestamp', 'run_date'}):
-            if 'run_date' not in _params:
+        if any(need in _params for need in {_p_timestamp, _p_run_date}):
+            if _p_run_date not in _params:
                 _params = merge_dicts(
                     _params,
-                    {'run_date': datetime.datetime.fromtimestamp(_params.get('timestamp')).strftime('%Y-%m-%d %H:%M:%S')}
+                    {_p_run_date: datetime.datetime.fromtimestamp(_params.get(_p_timestamp)).strftime(_date_fmt)}
                 )
-            elif 'timestamp' not in _params:
+            elif _p_timestamp not in _params:
                 _params = merge_dicts(
                     _params,
-                    {'timestamp': round(datetime.datetime.fromisoformat(_params.get('run_date')).timestamp())}
+                    {_p_timestamp: round(datetime.datetime.strptime(_params.get(_p_run_date), _date_fmt).timestamp())}
                 )
         else:
             _params = merge_dicts(
-                _params,
-                {
-                    'run_date': datetime.datetime.now(pytz.timezone("Asia/Bangkok")).strftime('%Y-%m-%d %H:%M:%S'),
-                    'timestamp': round(datetime.datetime.now(pytz.timezone("Asia/Bangkok")).timestamp())
+                _params, {
+                    _p_run_date: datetime.datetime.now(pytz.timezone(_date_timezone)).strftime(_date_fmt),
+                    _p_timestamp: round(datetime.datetime.now(pytz.timezone(_date_timezone)).timestamp())
                 }
             )
         return merge_dicts({
-            p: datetime.datetime.fromtimestamp(_params.get('timestamp')).strftime(fmt)
-            for p, fmt in self.MAP_DATE_PARAM.items()
+            _p: datetime.datetime.fromtimestamp(_params.get(_p_timestamp)).strftime(_fmt)
+            for _p, _fmt in self.MAP_DATE_PARAM.items()
         }, _params)
+
+    @property
+    def file_found(self):
+        return len(self.files)
 
     @property
     def get_files(self) -> Generator:
@@ -141,7 +150,6 @@ if __name__ == '__main__':
         f'file:///{PROJ_PATH}/data/sandbox/', 'files/csv', 'billing_{year}{month}{day}.csv', 'csv',
         parameters={
             'run_date': '2022-03-25 15:30:59',
-            'timestamp': 1648141200
         }
     )
     for _ in fs.open_files():
@@ -152,8 +160,6 @@ if __name__ == '__main__':
         f'file:///{PROJ_PATH}/data/sandbox/', 'files/excel', 'product_promotion_{year}.xlsx', 'xlsx',
         parameters={
             'run_date': '2022-03-25 15:30:59',
-            'timestamp': 1648197059,
-            'ai': 'test'
         }
     )
     for _ in fs.open_files():

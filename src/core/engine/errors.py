@@ -1,4 +1,4 @@
-class ConfigError(Exception):
+class ConfigError(ValueError):
     """Handle Error in config control"""
     def __init__(self, message, errors=None):
         super(ConfigError, self).__init__(message)

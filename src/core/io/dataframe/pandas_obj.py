@@ -15,9 +15,9 @@ CONF_PATH = conf.load(
 )['datasets'][f'local.{os.environ["PROJ_ENV"]}']
 
 
-class CSVColumn:
+class PandasColumn:
     """
-    CSV column object
+    Pandas column object
     config
     ------
         (i)   <column-name>:
@@ -133,7 +133,7 @@ class PandasCSVFrame(PandasCSVObject):
     config
     ------
         <files-alias-name>:
-            type: io.datasets.LocalCSVFile
+            type: io.datasets.PandasCSVFrame
             properties:
                 catalog_name: <files-name>
                 schemas:
@@ -163,40 +163,39 @@ class PandasCSVFrame(PandasCSVObject):
     def __init__(
             self,
             catalog_name: str,
+            external_params: dict,
+            global_params: dict,
             properties: Dict[str, Any],
             **kwargs
     ):
-        self.ps_server_conn = self.CONF_PATH['connection']
-        self.ps_cat_name = properties.pop('catalog_name', catalog_name).split(self.CONF_DELIMITER)
-        _last_path: str = self.ps_cat_name.pop(-1)
-        _remain_path: str = '/'.join(self.ps_cat_name)
-
-        # TODO: Check file extension be `.csv`, `.tsv`, or `.txt`
-        if '.' in _last_path:
-            self.ps_file_name = _last_path
-            self.ps_sub_path = f"{self.SUB_PATH}/{_remain_path}" if _remain_path \
-                else self.SUB_PATH
-        else:
-            _last_path = f"/{_last_path}" if _last_path else ""
-            self.ps_file_name = '*.csv'
-            self.ps_sub_path = f"{self.SUB_PATH}/{_remain_path}{_last_path}" if _remain_path \
-                else f"{self.SUB_PATH}{_last_path}"
-        self.ps_file_type: str = properties.pop('catalog_name', catalog_name)
+        self.ps_file_conn = self.CONF_PATH['connection']
+        self.ps_cat_name: list = properties.pop('catalog_name', catalog_name).split(self.CONF_DELIMITER)
+        self.ps_file_name, self.ps_file_path = self._ps_cat_name_mapping(self.ps_cat_name)
+        self.ps_file_type: str = properties.pop('catalog_type', 'csv')
+        self.ps_ext_params: dict = external_params
+        self.ps_glob_params: dict = global_params
         self.ps_cols: Optional[Dict[str, Any]] = properties.pop('schemas', None)
 
-        # Properties for Postgres table
-        self.ps_file_header: bool = str_to_bool(properties.pop('header', False))
-        self.ps_file_encoding: str = properties.pop('encoding', 'utf-8')
-        self.ps_file_delimiter: str = properties.pop('delimiter', ',')
+        # Properties for Pandas csv dataFrame arguments
+        self.ps_file_arguments: dict = {
+            _: properties[_] for _ in set(properties.keys()) & self.OBJECT_ARGS
+        }
+        if self.validate_arguments(properties):
+            raise ValueError(f'{self.__class__.__name__} does not support for arguments: '
+                             f'{", ".join((f"`{_}`" for _ in set(properties.keys()) - self.OBJECT_ARGS))}')
+        elif self.validate_file_type:
+            raise ValueError(f'{self.__class__.__name__} does not support for file type: {self.ps_file_type}')
 
-        # Optional arguments for Postgres table
+        # Optional arguments for Pandas csv dataFrame
         self.ps_file_retentions: Optional[Dict[str, Any]] = kwargs.pop('retentions', {})
 
         super(PandasCSVFrame, self).__init__(
-            self.ps_server_conn,
-            self.ps_sub_path,
+            self.ps_file_conn,
+            self.ps_file_path,
             self.ps_file_name,
-            self.ps_file_type
+            self.ps_file_type,
+            self.ps_file_arguments,
+            self.ps_ext_params
         )
 
     def __getattribute__(self, attr):
@@ -204,14 +203,28 @@ class PandasCSVFrame(PandasCSVObject):
             raise AttributeError(f"{self.__class__} does not have attribute `{attr}`")
         return super(PandasCSVFrame, self).__getattribute__(attr)
 
+    def _ps_cat_name_mapping(self, cat_name: list):
+        """Generate sub_path and file_name from catalog_name"""
+        _last_value: str = cat_name[-1]
+        if any(f'.{_}' in _last_value for _ in self.OBJECT_TYPE) or '.' in _last_value:
+            _file_name: str = cat_name.pop(-1)
+        else:
+            _file_name: str = '*.csv'
+        _sub_path: str = f'/{_sub}' if (_sub := '/'.join(cat_name)) else ''
+        return _file_name, f'{self.SUB_PATH}{_sub_path}'
+
+    def validate_arguments(self, _arguments: Optional[dict]) -> bool:
+        _arguments = _arguments or {}
+        return not set(_arguments.keys()).issubset(self.OBJECT_ARGS)
+
+    @property
+    def validate_file_type(self):
+        return self.ps_file_type not in self.OBJECT_TYPE
+
     def _schemas(self):
         """Generate raw configuration from `schemas` property"""
-        return {k: CSVColumn(v) for k, v in self.ps_cols.items()}
+        return {k: PandasColumn(v) for k, v in self.ps_cols.items()}
 
     @property
     def schemas(self):
         return self._schemas()
-
-    @staticmethod
-    def get_str_or_list(props, key) -> list:
-        return _return_key if isinstance((_return_key := props.pop(key, [])), list) else [_return_key]

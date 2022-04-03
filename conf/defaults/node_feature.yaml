@@ -1,0 +1,71 @@
+#node_feature_name:
+#     # Set type of node that set engine for process
+#     type: ""
+#     parameters:
+#          paramter_name_01: ""
+#          paramter_name_02: ""
+#     loads:
+#          input_01_alias:
+#               catalog: "catalog_name"
+#               incremental: "true or false"
+#               rolling: 0
+#          input_02_alias:
+#               catalog: "catalog_name"
+#               incremental: "true or false"
+#               rolling: 0
+#     saves:
+#          output_alias:
+#               catalog: "catalog_name"
+#               partition: [""]
+#               mode: "overwrite or append"
+#     processes:
+#          process_name_01:
+#               # Set type of process base on type of node
+#               type: ""
+#               properties:
+#                    # Properties of process type
+#                    input: ""
+#          process_name_02:
+#               # Set type of process base on type of node
+#               type: ""
+#               properties:
+#                    # Properties of process type
+#                    condition: ""
+#          process_name_03:
+#               # Set type of process base on type of node
+#               type: ""
+#               properties:
+#                    # Properties of process type
+#                    output: ""
+#     waiting: ""
+#     errors: ""
+
+node_feature_csv_to_table:
+     type: ""
+     loads:
+          csv_customer:
+               catalog: "catalog_file_customer"
+               incremental: "true"
+               rolling: 0
+          csv_billing:
+               catalog: "catalog_file_billing"
+               incremental: "true"
+               rolling: 0
+     saves:
+          pg_customer:
+               catalog: "catalog_pg_customer"
+               incremental: "true"
+               mode: "overwrite"
+          pg_billing:
+               catalog: "catalog_pg_billing"
+               incremental: "true"
+               mode: "append"
+     processes:
+          load_csv_to_pg_customer:
+               type: ""
+               arguments: {}
+          load_csv_to_pg_billing:
+               type: ""
+               arguments: {}
+     waiting: ""
+     errors: ""
