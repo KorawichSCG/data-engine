@@ -32,7 +32,6 @@ def test_pg_db():
 
 
 def test_local_csv():
-    # cls.load('catalog.catalog_name:csv'
     config01 = ConfigDefaultMapping.load(
         'catalog.catalog_file_customer:csv',
         external_parameters={'run_date': '2022-03-25 00:00:00'}
@@ -42,8 +41,9 @@ def test_local_csv():
         print(f"{k} = {v.details}")
     print("-" * 150)
     # print(config01.model.rows_num)
-    print(config01.model.df.dtypes)
-    print(config01.model._columns())
+    # print(config01.model._columns())
+    for k, v in config01.model.columns.items():
+        print(f"{k} = {v}")
     # print(config01.model.file_founds)
     # print("*" * 150)
     # config02 = ConfigDefaultMapping(

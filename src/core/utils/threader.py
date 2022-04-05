@@ -5,7 +5,7 @@ from typing import Any
 import ctypes
 
 threadList: dict = {}
-maxThreads = os.getenv('THREAD_LIMIT', 4)
+MAX_THREAD = os.getenv('MAX_THREAD', 10)
 
 
 def _async_raise(tid, exc_type):
@@ -39,14 +39,14 @@ class ThreadWithControl(threading.Thread):
         >> print(_thread.join())
         4
     """
-    threadLimiter = threading.BoundedSemaphore(maxThreads)
+    threadLimiter = threading.BoundedSemaphore(MAX_THREAD)
 
     def __init__(self, *args, **kwargs):
         self._return = None
         self._target = None
         self._args = None
         self._kwargs = None
-        super().__init__(*args, **kwargs)
+        super(ThreadWithControl, self).__init__(*args, **kwargs)
         self._stop_event = threading.Event()
         self.check_count = 0
 

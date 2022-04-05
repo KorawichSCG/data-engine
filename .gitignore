@@ -128,3 +128,8 @@ config.yaml
 
 # Engine files
 *.gz
+
+# Backup files
+*.backup.*
+*.bk.*
+*_bk.*

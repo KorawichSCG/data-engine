@@ -3,7 +3,7 @@ import re
 import itertools
 from pathlib import Path
 from typing import Any, Dict, Union, Optional
-from src.core.utils import str_to_bool
+from src.core.utils import str_to_bool, get_multi
 from src.core.io.conf_parser import conf
 from src.core.io.path_utils import path_join
 from .plugins.postgresql_plug import (
@@ -245,7 +245,7 @@ class PostgresTable(TableObject):
             properties: Dict[str, Any],
             **kwargs
     ):
-        self.ps_db_conn: Dict[str, Any] = self.CONF_DB['connection']
+        self.ps_db_conn: Dict[str, Any] = get_multi(self.CONF_DB, ['connection', 'conn'])
         self.ps_cat_name: list = properties.pop('catalog_name', catalog_name).split(self.CONF_DELIMITER)
         self.ps_tbl_name: str = self.ps_cat_name.pop(-1)
         self.ps_schema_name: str = self.ps_cat_name.pop(-1) if self.ps_cat_name else self.SCHEMA_NAME

@@ -54,7 +54,8 @@ class FileObject:
             parameters: Optional[dict] = None,
             regex: bool = True,
             open_mode: str = 'r',
-            encoding: str = 'utf-8'
+            encoding: str = 'utf-8',
+            path_sep: str = '/'
     ):
         """
         Create file object instance and convert regular expression with parameters
@@ -66,10 +67,10 @@ class FileObject:
 
             (ii)    full_path: C://user/path/csv/billing_{product_group_id}_{year}{month}{day}.csv
         """
-        self.root_path: str = root_path.removesuffix('/')
-        self.sub_path: str = sub_path.removesuffix('/')
+        self.root_path: str = root_path.removesuffix(path_sep)
+        self.sub_path: str = sub_path.removesuffix(path_sep)
         self.parameters: dict = self.__generate_params(parameters)
-        self.file_name: str = file_name.replace('*', r'([\w\d]*)') if regex else file_name
+        self.file_name: str = file_name.replace('*', r'([\w\d_]*)') if regex else file_name
         self.files: list = []
         self.open_mode = f'{open_mode}b' if file_type in self.MODE_BYTE else open_mode
         self.encoding = encoding
@@ -83,7 +84,7 @@ class FileObject:
                         all(val not in _ for val in self.FILE_FILTER)
                 ):
                     logger.debug(f'Found a file: {_}')
-                    self.files.append(f'{self.root_path}/{_}')
+                    self.files.append(f'{self.root_path}{path_sep}{_}')
             self._connect = True
         except KeyError as err:
             logger.warning(f'Parameters for `sub_path` or `file_name` does not add for key: {err}')

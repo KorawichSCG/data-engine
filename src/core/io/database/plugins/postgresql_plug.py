@@ -483,12 +483,14 @@ class TableObject(PostgresObject):
 
     def _columns(self) -> Dict[int, dict]:
         """
-        { <row-number>: {
-            column_name: str : <column-name>,
-            nullable: bool : [True, False],
-            default: (optional: str : None): <default-statement>,
-            data_type: str : <data-type>
-            }
+        {
+            <row-number>: {
+                column_name: str : <column-name>,
+                nullable: bool : [True, False],
+                default: (optional: str : None): <default-statement>,
+                data_type: str : <data-type>
+            },
+            ...
         }
         """
         return super(TableObject, self).query(

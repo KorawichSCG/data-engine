@@ -38,10 +38,10 @@ catalog_file_customer:
                     datatype: "integer"
                     nullable: "false"
                     default: "000000000"
-#          arguments:
-          header: 0
-          encoding: 'utf-8'
-          engine: 'python'
+          arguments:
+               header: 0
+               encoding: 'utf-8'
+               engine: 'python'
      retentions:
           retention_schemas: [ ]
           retention_value: 0
@@ -71,11 +71,12 @@ catalog_file_billing:
                sales_number:
                     datatype: "integer"
                     nullable: "true"
-          header: 0
-          encoding: 'utf-8'
-          delimiter: '|'
-          skipfooter: 1
-          comment: '#'
+          arguments:
+               header: 0
+               encoding: 'utf-8'
+               delimiter: '|'
+               skipfooter: 1
+               comment: '#'
      retentions:
           retention_schemas: [ ]
           retention_value: 0

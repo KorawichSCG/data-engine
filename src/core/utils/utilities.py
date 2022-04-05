@@ -170,6 +170,7 @@ def hash_string(input_value: str, num_length: int = 8, method='sha256') -> str:
     """
     return str(int(getattr(hashlib, method)(input_value.encode('utf-8')).hexdigest(), 16) % 10 ** num_length)
 
+
 def tokenize(*args, **kwargs):
     """Deterministic token
 
@@ -265,3 +266,12 @@ def build_name_function(max_int):
         return str(i).zfill(pad_length)
 
     return name_function
+
+
+def get_multi(mapping: dict, multi_keys: list, default=None):
+    """Get multi keys from dictionary when the keys have many name alias"""
+    last_key = multi_keys.pop(-1)
+    for key in multi_keys:
+        if key in mapping:
+            return mapping[key]
+    return mapping.get(last_key, default) if default else mapping[last_key]
