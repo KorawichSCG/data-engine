@@ -6,38 +6,12 @@ from typing import Optional, Dict, Union, Protocol
 from src.core.io.dataframe.plugins.file_plug import FileObject
 
 
-class PandasColumnObject:
-    """Pandas Column Object"""
-    MAP_DATA_TYPES = {
-        'object': '',
-        'int64': '',
-        'float64': '',
-        'datetime64': '',
-        'bool': ''
-    }
-
-    def __init__(
-            self,
-            column_name: str,
-            data_type: np.dtype,
-            nullable: bool
-
-    ):
-        self.col_name: str = column_name
-        self.col_datatype: np.dtype = data_type
-        self.col_nullable: bool = nullable
-        # print(type(data_type))
-
-    def __repr__(self):
-        return f"{self.col_datatype}{(' not null' if self.col_nullable else ' null')}"
-
-
 class PandasFileObject:
     """Pandas DataFrame for parse any file format"""
-    OBJECT_TYPE: Optional[set] = None
-    OBJECT_FUNC: Optional[callable] = None
-    OBJECT_ARGS: Optional[set] = None
+    __version__ = '14.0.0'
     __excluded__ = {'save'}
+
+    OBJECT_FUNC: Optional[callable] = None
 
     def __init__(
             self,
@@ -51,14 +25,14 @@ class PandasFileObject:
         self.file_conn: str = file_conn
         self.file_path: str = file_path
         self.file_name: str = file_name
-        self.file_type: str = file_extension
+        self.file_extension: str = file_extension
         self.file_arguments: dict = self.file_args_logic(file_arguments)
         # TODO: edit logic of get default of arguments
         self.fs: FileObject = FileObject(
             root_path=file_conn,
             sub_path=file_path,
             file_name=file_name,
-            file_type=file_extension,
+            file_extension=file_extension,
             parameters=ext_params
         )
         self.file_columns: Dict[str, PandasColumnObject] = self.generate_columns()
@@ -116,40 +90,35 @@ class PandasFileObject:
     def file_args_logic(_args: dict) -> dict: ...
 
 
+class PandasColumnObject:
+    """Pandas Column Object"""
+    MAP_DATA_TYPES = {
+        'object': '',
+        'int64': '',
+        'float64': '',
+        'datetime64': '',
+        'bool': ''
+    }
+
+    def __init__(
+            self,
+            column_name: str,
+            data_type: np.dtype,
+            nullable: bool
+
+    ):
+        self.col_name: str = column_name
+        self.col_datatype: np.dtype = data_type
+        self.col_nullable: bool = nullable
+        # print(type(data_type))
+
+    def __repr__(self):
+        return f"{self.col_datatype}{(' not null' if self.col_nullable else ' null')}"
+
+
 class PandasCSVObject(PandasFileObject):
     """Pandas DataFrame for parse `csv` file"""
-    OBJECT_TYPE: set = {'csv', 'txt', 'tsv'}
     OBJECT_FUNC = 'read_csv'
-    OBJECT_ARGS: set = {
-        'names',
-        'header',
-        'delimiter',
-        'index_col',
-        'dtype',
-        'converters',
-        'usecols',
-        'true_values',
-        'false_values',
-        'skipinitialspace',
-        'skiprows',
-        'skipfooter',
-        'nrows',
-        'na_values',
-        'keep_default_na',
-        'skip_blank_lines',
-        'encoding',
-        'mangle_dupe_cols',
-        'comment',
-        'thousands',
-        'decimal',
-        'quotechar',
-        'quoting',
-        'escapechar',
-        'on_bad_lines',
-        'low_memory',
-        'memory_map',
-        'engine'
-    }
 
     @staticmethod
     def file_args_logic(_args: dict) -> dict:
@@ -219,9 +188,10 @@ class PandasCSVObject(PandasFileObject):
         if _engine == 'c' and not _sep:
             _sep: str = ','
 
+        _sep_or_delimiter = {'delimiter': _delimiter} if _delimiter else {'sep': _sep}
+
         return {
-            'sep': _sep,
-            'delimiter': _delimiter,
+            **_sep_or_delimiter,
             'header': _header,
             'names': _names,
             'index_col': _index_col,
@@ -234,11 +204,7 @@ class PandasCSVObject(PandasFileObject):
 
 class PandasExcelObject(PandasFileObject):
     """Pandas DataFrame for parse `excel` file"""
-    OBJECT_TYPE: set = {'xlsx', 'xls'}
     OBJECT_FUNC = 'read_excel'
-    OBJECT_ARGS: set = {
-        'sheet_name'
-    }
 
     @staticmethod
     def file_args_logic(_args: dict) -> dict:
@@ -295,18 +261,15 @@ class PandasExcelObject(PandasFileObject):
             'index_col': _index_col,
             'usecols': _usecols,
             'mangle_dupe_cols': _mangle_dupe_cols,
+            'skiprows': _skiprows,
+            'comment': _comment,
             'engine': _engine,
         }
 
 
 class PandasJsonObject(PandasFileObject):
     """Pandas DataFrame for parse `json` file"""
-    OBJECT_TYPE: set = {'json'}
     OBJECT_FUNC = 'read_json'
-    OBJECT_ARGS: set = {
-        'orient',
-        'dtype'
-    }
 
     @staticmethod
     def file_args_logic(_args: dict) -> dict:
@@ -356,4 +319,5 @@ class PandasJsonObject(PandasFileObject):
         return {
             'typ': _typ,
             'orient': _orient,
+            'encoding': _encoding
         }

@@ -19,10 +19,10 @@
 #          author: "demo"
 
 catalog_file_product:
-     type: 'src.core.io.dataframe.PandasExcelFrame'
+     type: 'src.core.io.dataframe.PandasJsonFrame'
      properties:
-          catalog_name: "json/product_master_{year}{month}{year}.json"
-          catalog_type: 'file'
+          catalog_name: "json/product_master_{year}{month}{day}.json"
+          catalog_type: 'json'
           schemas:
                product_id:
                     datatype: "string"
@@ -31,8 +31,9 @@ catalog_file_product:
                attribute:
                     datatype: "array"
                modified: "string"
-          orient: 'records'
-          encoding: 'utf-8'
+          arguments:
+               orient: 'records'
+               encoding: 'utf-8'
      retentions:
           retention_schemas: [ ]
           retention_value: 0

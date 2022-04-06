@@ -1,0 +1,16 @@
+catalog_pg_vw_cutomer_cross:
+     type: 'src.core.io.database.PostgreMaterializedView'
+     properties:
+          catalog_name: 'public.mvw_customer_cross'
+          catalog_type: ''
+          schemas: {}
+          definition: "
+               select * from {}.table_name
+               "
+#     retentions:
+#          retention_schemas: [ ]
+#          retention_value: 0
+     informations:
+          label: [ "example", "database", "catalog" ]
+          milestone: "initialize"
+          author: "demo"

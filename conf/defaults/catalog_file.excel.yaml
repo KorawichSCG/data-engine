@@ -24,7 +24,7 @@ catalog_file_promotion:
      type: 'src.core.io.dataframe.PandasExcelFrame'
      properties:
           catalog_name: "excel/product_promotion_{year}.xlsx"
-          catalog_type: 'file'
+          catalog_type: 'xlsx'
           schemas:
                product_id:
                     datatype: "string"
@@ -36,11 +36,12 @@ catalog_file_promotion:
                     datatype: "date"
                     default: "9999-12-31"
                promo_percentage: "decimal( 6, 2 ) default '0.0'"
-          header: 0
-          encoding: 'utf-8'
-          sheet_name: ["main", 3]
-          skiprows: 1
-          comment: '#'
+          arguments:
+               header: 0
+               sheet_name: "main"
+               skiprows: 1
+               comment: '#'
+               engine: 'openpyxl'
      retentions:
           retention_schemas: [ ]
           retention_value: 0

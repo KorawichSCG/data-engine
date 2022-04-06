@@ -250,13 +250,27 @@ class ConfigMapping(ConfigParser):
     """
     __slots__ = 'model'
 
+    @classmethod
+    def load(
+            cls,
+            conf_full_name: str,
+            ext_params: Optional[dict] = None,
+            glob_params: Optional[dict] = None
+    ):
+        """
+        Load config with `conf_full_name` like 'conf_prefix.conf_name:conf_suffix'
+        """
+        _conf_name_with_prefix, _conf_suffix = conf_full_name.rsplit(':')
+        _conf_prefix, _conf_name = _conf_name_with_prefix.rsplit('.')
+        return cls(_conf_name, _conf_prefix, _conf_suffix, ext_params, glob_params)
+
     def __init__(
             self,
             conf_name: str,
             conf_file_prefix: Optional[str] = None,
             conf_file_suffix: Optional[str] = None,
-            external_parameters: Optional[dict] = None,
-            global_parameters: Optional[dict] = None
+            ext_params: Optional[dict] = None,
+            glob_params: Optional[dict] = None
     ):
         """
         Create instance of config class
@@ -269,24 +283,10 @@ class ConfigMapping(ConfigParser):
         super(ConfigMapping, self).__init__(conf_name, conf_file_prefix, conf_file_suffix)
         if self.verbose:
             logger.info(f"Start mapping configuration with type: {self.conf_type}")
-        self.ext_params: dict = external_parameters or {}
-        self.glob_params: dict = global_parameters or {}
+        self.ext_params: dict = ext_params or {}
+        self.glob_params: dict = glob_params or {}
         _type_cls: Callable = import_string(self.conf_type)
         self.model: Any = _type_cls(self.conf_name, self.ext_params, self.glob_params, **self.conf_data)
-
-    @classmethod
-    def load(
-            cls,
-            conf_full_name: str,
-            external_parameters: Optional[dict] = None,
-            global_parameters: Optional[dict] = None
-    ):
-        """
-        Load config with `conf_full_name` like 'conf_prefix.conf_name:conf_suffix'
-        """
-        _conf_name_with_prefix, _conf_suffix = conf_full_name.rsplit(':')
-        _conf_prefix, _conf_name = _conf_name_with_prefix.rsplit('.')
-        return cls(_conf_name, _conf_prefix, _conf_suffix, external_parameters, global_parameters)
 
     @property
     def validate_sub_path(self):
@@ -299,7 +299,9 @@ class ConfigDefaultMapping(ConfigMapping):
     CONF_SUB_PATH: ClassVar[str] = 'defaults'
     CLASS_VALIDATE: List[object] = [
         postgresql_obj.PostgresTable,
-        pandas_obj.PandasCSVFrame
+        pandas_obj.PandasCSVFrame,
+        pandas_obj.PandasExcelFrame,
+        pandas_obj.PandasJsonFrame
     ]
 
 
@@ -307,5 +309,7 @@ class ConfigDefaultConvert(ConfigConvert):
     CONF_SUB_PATH: ClassVar[str] = 'defaults'
     CLASS_VALIDATE: List[object] = [
         postgresql_obj.PostgresTable,
-        pandas_obj.PandasCSVFrame
+        pandas_obj.PandasCSVFrame,
+        pandas_obj.PandasExcelFrame,
+        pandas_obj.PandasJsonFrame
     ]

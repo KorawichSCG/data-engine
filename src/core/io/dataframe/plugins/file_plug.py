@@ -50,7 +50,7 @@ class FileObject:
             root_path: str,
             sub_path: str,
             file_name: str,
-            file_type: str,
+            file_extension: str,
             parameters: Optional[dict] = None,
             regex: bool = True,
             open_mode: str = 'r',
@@ -72,7 +72,7 @@ class FileObject:
         self.parameters: dict = self.__generate_params(parameters)
         self.file_name: str = file_name.replace('*', r'([\w\d_]*)') if regex else file_name
         self.files: list = []
-        self.open_mode = f'{open_mode}b' if file_type in self.MODE_BYTE else open_mode
+        self.open_mode = f'{open_mode}b' if file_extension in self.MODE_BYTE else open_mode
         self.encoding = encoding
         try:
             # TODO: change way to search file that mean use regex before use format
@@ -144,25 +144,3 @@ class FileObject:
     @property
     def connectable(self) -> bool:
         return self._connect
-
-
-if __name__ == '__main__':
-    fs = FileObject(
-        f'file:///{PROJ_PATH}/data/sandbox/', 'files/csv', 'billing_{year}{month}{day}.csv', 'csv',
-        parameters={
-            'run_date': '2022-03-25 15:30:59',
-        }
-    )
-    for _ in fs.open_files():
-        df = pd.read_csv(_)
-        print(df)
-    print('~' * 100)
-    fs = FileObject(
-        f'file:///{PROJ_PATH}/data/sandbox/', 'files/excel', 'product_promotion_{year}.xlsx', 'xlsx',
-        parameters={
-            'run_date': '2022-03-25 15:30:59',
-        }
-    )
-    for _ in fs.open_files():
-        df = pd.read_excel(_)
-        print(df)

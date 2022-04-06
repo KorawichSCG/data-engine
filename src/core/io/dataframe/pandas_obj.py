@@ -6,7 +6,9 @@ from typing import Any, Dict, Union, Optional
 from src.core.utils import str_to_bool, merge_dicts, get_multi
 from src.core.io.path_utils import path_join
 from src.core.io.conf_parser import conf
-from src.core.io.dataframe.plugins.pandas_plug import PandasCSVObject
+from src.core.io.dataframe.plugins.pandas_plug import (
+    PandasCSVObject, PandasExcelObject, PandasJsonObject
+)
 
 os.environ.setdefault('PROJ_PATH', path_join(Path(__file__).parent, '../../../..'))
 conf.load_env(path_join(os.environ['PROJ_PATH'], 'conf/.env'))
@@ -175,7 +177,8 @@ class PandasFrame:
         self.ps_file_conn = get_multi(self.CONF_PATH, ['connection', 'conn'])
         self.ps_cat_name: list = properties.pop('catalog_name', catalog_name).split(self.CONF_DELIMITER)
         self.ps_file_name, self.ps_file_path = self.ps_cat_name_mapping(self.ps_cat_name)
-        self.ps_file_type: str = properties.pop('catalog_type', 'csv')
+        self.ps_file_extension: str = self.ps_file_name.rsplit('.', maxsplit=1)[-1]
+        self.ps_file_type: str = properties.pop('catalog_type')
         self.ps_ext_params: dict = external_params
         self.ps_glob_params: dict = global_params
         self.ps_cols: Optional[Dict[str, Any]] = properties.pop('schemas', None)
@@ -185,7 +188,7 @@ class PandasFrame:
         if self.validate_arguments(_ps_file_args):
             raise ValueError(f'{self.__class__.__name__} does not support for arguments: '
                              f'{", ".join((f"`{_}`" for _ in set(_ps_file_args.keys()) - self.CONF_ARGS))}')
-        elif self.validate_file_type:
+        elif self.validate_file_extension:
             raise ValueError(f'{self.__class__.__name__} does not support for file type: {self.ps_file_type}')
 
         self.ps_file_arguments: dict = merge_dicts({
@@ -209,8 +212,8 @@ class PandasFrame:
         return not set(_arguments.keys()).issubset(self.CONF_ARGS)
 
     @property
-    def validate_file_type(self):
-        return self.ps_file_type not in self.CONF_TYPE
+    def validate_file_extension(self):
+        return self.ps_file_extension not in self.CONF_TYPE
 
     def _schemas(self):
         """Generate raw configuration from `schemas` property"""
@@ -280,7 +283,91 @@ class PandasCSVFrame(PandasFrame, PandasCSVObject):
             self.ps_file_conn,
             self.ps_file_path,
             self.ps_file_name,
-            self.ps_file_type,
+            self.ps_file_extension,
+            self.ps_file_arguments,
+            self.ps_ext_params
+        )
+
+    def __getattribute__(self, attr):
+        if attr in super().__excluded__:
+            raise AttributeError(f"{self.__class__} does not have attribute `{attr}`")
+        return super().__getattribute__(attr)
+
+
+class PandasExcelFrame(PandasFrame, PandasExcelObject):
+    """Pandas Excel DataFrame object"""
+    CONF_TYPE: set = {'xlsx', 'xls', 'odf', 'ods', 'odt'}
+    CONF_ARGS: set = {
+        'sheet_name',
+        'header',
+        'skiprows',
+        'comment',
+        'engine'
+    }
+
+    def __init__(
+            self,
+            catalog_name: str,
+            external_params: dict,
+            global_params: dict,
+            properties: Dict[str, Any],
+            **kwargs
+    ):
+        PandasFrame.__init__(
+            self,
+            catalog_name,
+            external_params,
+            global_params,
+            properties,
+            **kwargs
+        )
+        PandasExcelObject.__init__(
+            self,
+            self.ps_file_conn,
+            self.ps_file_path,
+            self.ps_file_name,
+            self.ps_file_extension,
+            self.ps_file_arguments,
+            self.ps_ext_params
+        )
+
+    def __getattribute__(self, attr):
+        if attr in super().__excluded__:
+            raise AttributeError(f"{self.__class__} does not have attribute `{attr}`")
+        return super().__getattribute__(attr)
+
+
+class PandasJsonFrame(PandasFrame, PandasJsonObject):
+    """Pandas Json DataFrame object"""
+    CONF_TYPE: set = {'json'}
+    CONF_ARGS: set = {
+        'orient',
+        'dtype',
+        'encoding'
+    }
+
+    def __init__(
+            self,
+            catalog_name: str,
+            external_params: dict,
+            global_params: dict,
+            properties: Dict[str, Any],
+            **kwargs
+    ):
+        PandasFrame.__init__(
+            self,
+            catalog_name,
+            external_params,
+            global_params,
+            properties,
+            **kwargs
+        )
+        PandasJsonObject.__init__(
+            self,
+            self.ps_file_conn,
+            self.ps_file_path,
+            self.ps_file_name,
+            self.ps_file_extension,
             self.ps_file_arguments,
             self.ps_ext_params
         )

@@ -1,4 +1,4 @@
-from .pandas_obj import PandasCSVFrame
+from .pandas_obj import PandasCSVFrame, PandasExcelFrame, PandasJsonFrame
 
 
 # ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))

@@ -292,3 +292,85 @@ class PostgresTable(TableObject):
     @staticmethod
     def get_str_or_list(props, key):
         return _return_key if isinstance((_return_key := props.pop(key, [])), list) else [_return_key]
+
+
+class PostgresView(ViewObject):
+    CONF_DB = CONF_DB
+    CONF_DELIMITER: str = '.'
+    SCHEMA_NAME: str = 'public'
+
+    def __init__(
+            self,
+            catalog_name: str,
+            external_params: dict,
+            global_params: dict,
+            properties: Dict[str, Any],
+            **kwargs
+    ):
+        self.ps_db_conn: Dict[str, Any] = get_multi(self.CONF_DB, ['connection', 'conn'])
+        self.ps_cat_name: list = properties.pop('catalog_name', catalog_name).split(self.CONF_DELIMITER)
+        self.ps_view_name: str = self.ps_cat_name.pop(-1)
+        self.ps_schema_name: str = self.ps_cat_name.pop(-1) if self.ps_cat_name else self.SCHEMA_NAME
+        self.ps_view_type: str = properties.pop('catalog_type', catalog_name)
+        self.ps_cols: Optional[Dict[str, Any]] = properties.pop('schemas', None)
+
+        # Properties for Postgres table
+        # self.ps_tbl_primary_key: list = self.get_str_or_list(properties, 'primary_key')
+        # self.ps_tbl_unique = self.get_str_or_list(properties, 'unique')
+        # self.ps_tbl_foreign_key = properties.pop('foreign_key', {})
+        # self.ps_tbl_constraint = properties.pop('constraints', {})
+
+        # Optional arguments for Postgres table
+        # self.ps_tbl_retentions: Optional[Dict[str, Any]] = kwargs.pop('retentions', {})
+
+        super(PostgresView, self).__init__(
+            self.ps_db_conn,
+            self.ps_schema_name,
+            self.ps_tbl_name
+        )
+
+    def __getattribute__(self, attr):
+        if attr in super().__excluded__:
+            raise AttributeError(f"{self.__class__} does not have attribute `{attr}`")
+        return super().__getattribute__(attr)
+
+
+class PostgresMaterializedView(MaterializedViewObject):
+    CONF_DB = CONF_DB
+    CONF_DELIMITER: str = '.'
+    SCHEMA_NAME: str = 'public'
+
+    def __init__(
+            self,
+            catalog_name: str,
+            external_params: dict,
+            global_params: dict,
+            properties: Dict[str, Any],
+            **kwargs
+    ):
+        self.ps_db_conn: Dict[str, Any] = get_multi(self.CONF_DB, ['connection', 'conn'])
+        self.ps_cat_name: list = properties.pop('catalog_name', catalog_name).split(self.CONF_DELIMITER)
+        self.ps_view_name: str = self.ps_cat_name.pop(-1)
+        self.ps_schema_name: str = self.ps_cat_name.pop(-1) if self.ps_cat_name else self.SCHEMA_NAME
+        self.ps_mat_view_type: str = properties.pop('catalog_type', catalog_name)
+        self.ps_cols: Optional[Dict[str, Any]] = properties.pop('schemas', None)
+
+        # Properties for Postgres table
+        # self.ps_tbl_primary_key: list = self.get_str_or_list(properties, 'primary_key')
+        # self.ps_tbl_unique = self.get_str_or_list(properties, 'unique')
+        # self.ps_tbl_foreign_key = properties.pop('foreign_key', {})
+        # self.ps_tbl_constraint = properties.pop('constraints', {})
+
+        # Optional arguments for Postgres table
+        # self.ps_tbl_retentions: Optional[Dict[str, Any]] = kwargs.pop('retentions', {})
+
+        super(MaterializedViewObject, self).__init__(
+            self.ps_db_conn,
+            self.ps_schema_name,
+            self.ps_tbl_name
+        )
+
+    def __getattribute__(self, attr):
+        if attr in super().__excluded__:
+            raise AttributeError(f"{self.__class__} does not have attribute `{attr}`")
+        return super().__getattribute__(attr)

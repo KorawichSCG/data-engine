@@ -1,3 +1,4 @@
+# https://www.postgresqltutorial.com/
 import pandas as pd
 import psycopg
 from typing import Dict, Any, Optional, List, Union, Tuple
@@ -9,6 +10,7 @@ class PostgresConn:
     """
     PostgresSQL connection class
     """
+    __version__ = '12.0.0'
 
     def __init__(self, db_conn: Dict[str, Any]):
         self.error_stm: str = ""
@@ -117,6 +119,7 @@ class PostgresObject(PostgresConn):
     """
     # TODO: change way to inherit `PostgresConn` because excluded `query` and `execute` method
     OBJECT_TYPE: Optional[str] = None
+    __excluded__ = {'query', 'execute'}
 
     def __init__(
             self,
@@ -168,8 +171,10 @@ class PostgresObject(PostgresConn):
                                 cur.execute(SQL(_query))
                         except psycopg.Error as err:
                             conn.rollback()
+                            # FIXME: change `print` to `logging`
                             print(
-                                f"{type(err).__module__.removesuffix('.errors')}:{type(err).__name__}: {str(err).rstrip()}"
+                                f"{type(err).__module__.removesuffix('.errors')}:"
+                                f"{type(err).__name__}: {str(err).rstrip()}"
                             )
             self.statement: list = []
 
@@ -259,8 +264,9 @@ class ColumnObject:
     COLUMN_DATATYPE: Dict[str, str] = {
         'bool': ['boolean'],
         'object': ['varchar', 'character_varying', 'char', 'character', 'text', 'money', 'name'
-                   'numeric', 'decimal', 'date', 'time without timezone', 'time'
-                   'array', 'json', 'jsonb'],
+                                                                                         'numeric', 'decimal', 'date',
+                   'time without timezone', 'time'
+                                            'array', 'json', 'jsonb'],
         'int64': ['smallint', 'bigint', 'integer', 'int', 'smallserial', 'serial', 'bigserial'],
         'float64': ['real', 'double precision'],
         'datetime64[ns]': 'timestamp without timezone',
@@ -437,7 +443,6 @@ class TableObject(PostgresObject):
                     ;
     """
     OBJECT_TYPE = "table"
-    __excluded__ = {'query', 'execute'}
 
     def __init__(
             self,
@@ -486,6 +491,7 @@ class TableObject(PostgresObject):
         {
             <row-number>: {
                 column_name: str : <column-name>,
+                column_position: int : <column-position>,
                 nullable: bool : [True, False],
                 default: (optional: str : None): <default-statement>,
                 data_type: str : <data-type>
@@ -563,12 +569,12 @@ class TableObject(PostgresObject):
                             kcu.column_name, ccu.table_name, ccu.column_name)
                          else lower(cc.check_clause)
                     end                                                             as constraint_desc
-            from {self.db_name}.information_schema.table_constraints             as tc
-            left join {self.db_name}.information_schema.key_column_usage         as kcu
+            from {self.db_name}.information_schema.table_constraints                as tc
+            left join {self.db_name}.information_schema.key_column_usage            as kcu
                 on tc.constraint_name = kcu.constraint_name
-            left join {self.db_name}.information_schema.constraint_column_usage  as ccu
+            left join {self.db_name}.information_schema.constraint_column_usage     as ccu
                 on ccu.constraint_name = tc.constraint_name
-            left join {self.db_name}.information_schema.check_constraints        as cc
+            left join {self.db_name}.information_schema.check_constraints           as cc
                 on cc.constraint_name = tc.constraint_name
             where tc.table_schema = '{self.schema_name}' and tc.table_name = '{self.tbl_name}'
             and tc.constraint_name not like '%not_null'"""
@@ -607,7 +613,8 @@ class TableObject(PostgresObject):
         if super(TableObject, self).schema_exists:
             result_dict: dict = super(TableObject, self).query(
                 f"""select exists( select from {self.db_name}.information_schema.tables
-                where table_schema = '{self.schema_name}' and table_name = '{self.tbl_name}' ) as check_exists"""
+                where table_schema = '{self.schema_name}' and table_name = '{self.tbl_name}'
+                and table_type = 'BASE TABLE' ) as check_exists"""
             )['check_exists'].to_dict()
             return result_dict.get(0, False)
         return False
@@ -637,7 +644,7 @@ class TableObject(PostgresObject):
 
     def select(self, *args, **kwargs):
         _columns = args if isinstance(args[0], str) else args[0]
-        # TODO: validate `_columns`
+        # TODO: validate `_columns` before query select
         result_type = kwargs.get('result_type', None)
         return super(TableObject, self).query(
             f"""select {(",".join(_columns))} from {self.fullname}""", result_type
@@ -674,6 +681,127 @@ class ViewObject(PostgresObject):
             auto_execute: Optional[bool] = False
     ):
         super().__init__(db_conn, schema_name, view_name, auto_execute)
+        self.view_name: str = self.obj_name
+        self.view_name_full: str = self.obj_name_full
+        self.alive: bool = self.exists
+
+    def _columns(self) -> Dict[int, dict]:
+        """
+        {
+            <row-number>: {
+                column_name: str : <column-name>,
+                nullable: bool : [True, False],
+                default: (optional: str : None): <default-statement>,
+                data_type: str : <data-type>
+            },
+            ...
+        }
+        """
+        return super(ViewObject, self).query(
+            f"""select	column_name
+            ,		column_position
+            ,		column_nullable											as nullable
+            ,		column_default											as default
+            ,		concat(data_type, data_type_length, with_time_zone)		as data_type
+            from	(	select	column_name
+            ,		ordinal_position										as column_position
+            , 		case when lower(is_nullable) = 'yes'
+                         then true
+                         else false
+                    end	                                                    as column_nullable
+            ,		column_default											as column_default
+            ,		case when data_type like '%with%'
+                         then substring(data_type, 1, position(' ' in data_type) - 1)
+                         when data_type like 'char%'
+                         then ('{{"character varying": "varchar", "character": "char"}}'::jsonb ->> data_type)
+                         when data_type = 'interval' and interval_type is not null
+                         then concat(data_type, ' ', lower(interval_type))
+                         else lower(data_type)
+                    end                                                     as data_type
+            ,		case when data_type like '%with time zone%'
+                         then substring(data_type, position(' ' in data_type))
+                         else ''
+                    end                                                     as with_time_zone
+            ,		case when character_maximum_length is not null and character_maximum_length > 1
+                         then concat('( ', character_maximum_length, ' )')
+                         when numeric_precision is not null and numeric_scale > 0
+                         then concat('( ', numeric_precision, ', ', numeric_scale, ' )')
+                         when numeric_precision is not null and numeric_scale = 0 and udt_name not like 'int%'
+                         then concat('( ', numeric_precision, ' )')
+                         when datetime_precision between 1 and 5
+                         then concat('(', datetime_precision,') ')
+                         else ''
+                    end                                                     as data_type_length
+            from {self.db_name}.information_schema.columns
+            where   table_schema = '{self.schema_name}' and table_name = '{self.view_name}') as a"""
+        ).reset_index(drop=True).to_dict('index')
+
+    def _definition(self) -> Dict[int, dict]:
+        """
+        {
+            <row-number>: {
+                view_definition: str : <definition>,
+                check_option: str : [NONE, ...]
+                is_updatable: str : [NO, YES]
+                is_insertable_into: str : [NO, YES]
+                ...
+            },
+            ...
+        }
+        """
+        return super(ViewObject, self).query(
+            f"""select  view_definition
+            ,       check_option
+            ,       is_updatable
+            ,       is_insertable_into
+            ,       is_trigger_updatable
+            ,       is_trigger_deletable
+            ,       is_trigger_insertable_into
+            from {self.db_name}.information_schema.views
+            where   table_schema = '{self.schema_name}' and table_name = '{self.view_name}'"""
+        ).reset_index(drop=True).to_dict('index')
+
+    @property
+    def name(self):
+        return self.view_name
+
+    @property
+    def fullname(self):
+        return self.view_name_full
+
+    @property
+    def exists(self) -> bool:
+        if super(ViewObject, self).schema_exists:
+            result_dict: dict = super(ViewObject, self).query(
+                f"""select exists( select from {self.db_name}.information_schema.tables
+                where table_schema = '{self.schema_name}' and table_name = '{self.view_name}'
+                and table_type = 'VIEW' ) as check_exists"""
+            )['check_exists'].to_dict()
+            return result_dict.get(0, False)
+        return False
+
+    def rename(self, view_name):
+        self.statement.append(f"alter {self.OBJECT_TYPE} {self.obj_name_full} rename to {view_name};")
+        if self.auto_execute:
+            self.execute()
+        self.obj_name = view_name
+        return self
+
+    def create(self, or_replace: Optional[bool] = False):
+        self.statement.append(
+            f"""create {('or replace' if or_replace else '')} {self.OBJECT_TYPE} {self.obj_name_full} ();"""
+        )
+        if self.auto_execute:
+            self.execute()
+        return self
+
+    def drop(self, if_exists: bool = False, cascade: bool = False):
+        self.statement.append(f"drop {self.OBJECT_TYPE} {('if exists' if if_exists else '')} {self.obj_name_full} "
+                              f"{'cascade' if cascade else 'restrict'};")
+        if self.auto_execute:
+            self.execute()
+        self.alive = False
+        return self
 
 
 class MaterializedViewObject(PostgresObject):
@@ -717,11 +845,138 @@ class MaterializedViewObject(PostgresObject):
                     and aasm.start_of_month   =   afm.forecast_month
                     order by 1,4
                 )
+        (ii)    CREATE MATERIALIZED VIEW IF NOT EXISTS {}.{}.vw_ai_opt (
+                    col_name, ... )
+                    AS ( select ... )
+                    WITH NO DATA; -- or WITH DATA
     """
     OBJECT_TYPE = "materialized view"
 
-    def refresh(self):
-        self.statement.append(f"refresh {self.OBJECT_TYPE} {self.obj_name_full};")
+    def __init__(
+            self,
+            db_conn: Dict[str, Any],
+            schema_name: str,
+            mat_view_name: str,
+            auto_execute: Optional[bool] = False
+    ):
+        super().__init__(db_conn, schema_name, mat_view_name, auto_execute)
+        self.mat_view_name: str = self.obj_name
+        self.mat_view_name_full: str = self.obj_name_full
+        self.alive: bool = self.exists
+
+    def _columns(self) -> Dict[int, dict]:
+        """
+        {
+            <row-number>: {
+                column_name: str : <column-name>,
+                column_position: int : <column-position>,
+                nullable: bool : [True, False],
+                data_type: str : <data-type>
+            },
+            ...
+        }
+        """
+        return super(MaterializedViewObject, self).query(
+            f"""select	column_name
+            ,		column_position
+            ,		column_nullable                         as nullable
+            ,		concat(case when dt_reg[1] like 'char%'
+                                then '{{"character varying": "varchar", "character": "char"}}'::jsonb ->> dt_reg[1]
+                                else dt_reg[1]
+                           end,
+                           case when nullif(regexp_replace(dt_reg[2], '\\|', ', '), '') is null
+                                then ''
+                                else concat('( ', nullif(regexp_replace(dt_reg[2], '\\|', ', '), ''), ' )')
+                           end) 							as data_type
+            from	(	select	attr.attname 				as column_name
+            ,		attr.attnum								as column_position
+            ,    	attr.attnotnull							as column_nullable
+            ,		regexp_match(
+                            regexp_replace(pg_catalog.format_type(attr.atttypid, attr.atttypmod), ',', '|')
+                            ,	'^([A-Za-z\\s]*)\\(?([0-9\\|]*)?\\)?$'
+                            ) 								    as dt_reg
+            ,		trim(leading '_' from tp.typname) 		    as data_type
+            from {self.db_name}.pg_catalog.pg_attribute         as attr
+            inner join {self.db_name}.pg_catalog.pg_class       as cls
+                on cls.oid  =   attr.attrelid
+            inner join {self.db_name}.pg_catalog.pg_namespace   as ns
+                on ns.oid   =   cls.relnamespace
+            inner join {self.db_name}.pg_catalog.pg_type        as tp
+                on tp.oid   =   attr.atttypid
+            where ns.nspname = '{self.schema_name}' and cls.relname = '{self.mat_view_name}'
+            and attr.attnum > 0 and not attr.attisdropped ) as a"""
+        ).reset_index(drop=True).to_dict('index')
+
+    def _definition(self) -> Dict[int, dict]:
+        """
+        {
+            <row-number>: {
+                table_space: str : <table_space>
+                has_indexes: bool : [True, False],
+                is_populated: bool : [True, False],
+                definition: str : <definition>
+            },
+            ...
+        }
+        """
+        return super(MaterializedViewObject, self).query(
+            f"""select  tablespace                              as table_space
+            ,       hasindexes                                  as has_indexes
+            ,       ispopulated                                 as is_populated
+            ,       definition
+            from {self.db_name}.pg_catalog.pg_matviews
+            where   schemaname = '{self.schema_name}' and matviewname = '{self.mat_view_name}'"""
+        ).reset_index(drop=True).to_dict('index')
+
+    @property
+    def name(self):
+        return self.mat_view_name
+
+    @property
+    def fullname(self):
+        return self.mat_view_name_full
+
+    @property
+    def exists(self) -> bool:
+        if super(MaterializedViewObject, self).schema_exists:
+            result_dict: dict = super(MaterializedViewObject, self).query(
+                f"""select exists( select from pg_catalog.pg_matviews
+                    where  schemaname = '{self.schema_name}' and matviewname = '{self.mat_view_name}'
+                    ) as check_exists"""
+            )['check_exists'].to_dict()
+            return result_dict.get(0, False)
+        return False
+
+    def rename(self, mat_view_name):
+        self.statement.append(f"alter {self.OBJECT_TYPE} {self.obj_name_full} rename to {mat_view_name};")
+        if self.auto_execute:
+            self.execute()
+        self.obj_name = mat_view_name
+        return self
+
+    def create(self, if_not_exists: Optional[bool] = False):
+        self.statement.append(
+            f"""create {self.OBJECT_TYPE} {('if not exists' if if_not_exists else '')} {self.obj_name_full} ();"""
+        )
+        if self.auto_execute:
+            self.execute()
+        return self
+
+    def refresh(self, concurrently: bool = False):
+        """
+        When you refresh data for a materialized view, PostgreSQL locks the entire table
+        therefore you cannot query data against it. To avoid this, you can use the CONCURRENTLY option.
+        With CONCURRENTLY option, PostgreSQL creates a temporary updated version of the materialized view,
+        compares two versions, and performs INSERT and UPDATE only the differences.
+        You can query against a materialized view while it is being updated. One requirement
+        for using CONCURRENTLY option is that the materialized view must have a UNIQUE index.
+        """
+        _concur = ' concurrently ' if concurrently else ' '
+        self.statement.append(f"refresh {self.OBJECT_TYPE}{_concur}{self.obj_name_full};")
+        return self
+
+    def create_unique_index(self):
+        """CREATE UNIQUE INDEX rental_category ON rental_by_category (category);"""
         return self
 
 
@@ -751,6 +1006,14 @@ class FunctionObject(PostgresObject):
                 $func$;
     """
     OBJECT_TYPE = "function"
+
+    def create(self, or_replace: Optional[bool] = False):
+        self.statement.append(
+            f"""create {('or replace' if or_replace else '')} {self.OBJECT_TYPE} {self.obj_name_full} ();"""
+        )
+        if self.auto_execute:
+            self.execute()
+        return self
 
 
 class ProcedureObject(PostgresObject):
@@ -782,3 +1045,40 @@ class ProcedureObject(PostgresObject):
                 $store_proc$
     """
     OBJECT_TYPE = "procedure"
+
+    def __init__(
+            self,
+            db_conn: Dict[str, Any],
+            schema_name: str,
+            proc_name: str,
+            auto_execute: Optional[bool] = False
+    ):
+        super().__init__(db_conn, schema_name, proc_name, auto_execute)
+        self.mat_view_name: str = self.obj_name
+        self.mat_view_name_full: str = self.obj_name_full
+        self.alive: bool = self.exists
+
+
+class OperationObject(PostgresObject):
+    """
+    Operation Object
+    """
+    OBJECT_TYPE = "operation"
+
+    def create_individual_user(self):
+        """
+
+        """
+        return None
+
+    def create_role(self):
+        """
+
+        """
+        return None
+
+    def assign_role_to_user(self):
+        """
+
+        """
+        return None

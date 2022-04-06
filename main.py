@@ -34,36 +34,28 @@ def test_pg_db():
 def test_local_csv():
     config01 = ConfigDefaultMapping.load(
         'catalog.catalog_file_customer:csv',
-        external_parameters={'run_date': '2022-03-25 00:00:00'}
+        ext_params={'run_date': '2022-03-25 00:00:00'}
     )
     print("-" * 150)
     for k, v in config01.model.schemas.items():
         print(f"{k} = {v.details}")
     print("-" * 150)
-    # print(config01.model.rows_num)
-    # print(config01.model._columns())
-    for k, v in config01.model.columns.items():
-        print(f"{k} = {v}")
-    # print(config01.model.file_founds)
-    # print("*" * 150)
-    # config02 = ConfigDefaultMapping(
-    #     'catalog_file_billing',
-    #     'catalog',
-    #     'csv',
-    #     external_parameters={'run_date': '2022-03-26 00:00:00'}
-    # )
-    # for k, v in config02.model.schemas.items():
-    #     print(f"{k} = {v.details}")
-    # print("-" * 150)
-    # print(config02.model.df)
+    print(config01.model.df)
+    config02 = ConfigDefaultMapping.load(
+        'catalog.catalog_file_billing:csv',
+        ext_params={'run_date': '2022-03-26 00:00:00'}
+    )
+    print("-" * 150)
+    for k, v in config02.model.schemas.items():
+        print(f"{k} = {v.details}")
+    print("-" * 150)
+    print(config02.model.df)
 
 
 def test_local_excel():
-    config01 = ConfigDefaultMapping(
-        'catalog_file_promotion',
-        'catalog',
-        'excel',
-        external_parameters={'run_date': '2022-03-25 00:00:00'}
+    config01 = ConfigDefaultMapping.load(
+        'catalog.catalog_file_promotion:excel',
+        ext_params={'run_date': '2022-03-25 00:00:00'}
     )
     for k, v in config01.model.schemas.items():
         print(f"{k} = {v.details}")
@@ -72,7 +64,14 @@ def test_local_excel():
 
 
 def test_local_json():
-    pass
+    config01 = ConfigDefaultMapping.load(
+        'catalog.catalog_file_product:json',
+        ext_params={'run_date': '2022-03-01 00:00:00'}
+    )
+    for k, v in config01.model.schemas.items():
+        print(f"{k} = {v.details}")
+    print("-" * 150)
+    print(config01.model.df)
 
 
 if __name__ == '__main__':
@@ -83,3 +82,5 @@ if __name__ == '__main__':
     test_local_csv()
     # logger.info("*" * 100)
     # test_local_excel()
+    # logger.info("*" * 100)
+    # test_local_json()
