@@ -1,13 +1,13 @@
 import os
 import pandas as pd
-import core.utils.log_parser
-from src.core.utils.log_parser import setup_log
+import core.engine.log_parser
+from core.engine.log_parser import setup_log
 from src.core.engine.config_control import ConfigDefaultMapping
-from src.core.io.path_utils import path_join
+from src.core.io.path_url import path_join
 
 PROJ_PATH = os.environ.get('PROJ_PATH', path_join(os.path.dirname(__file__), '../../../..'))
 setup_log(path_join(PROJ_PATH, 'conf/logging.yaml'))
-logger = core.utils.log_parser.get_logger(__name__)
+logger = core.engine.log_parser.get_logger(__name__)
 
 pd.set_option('display.width', None)
 pd.set_option('display.max_columns', None)

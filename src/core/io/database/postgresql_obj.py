@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, Union, Optional
 from src.core.utils import str_to_bool, get_multi
 from src.core.io.conf_parser import conf
-from src.core.io.path_utils import path_join
+from src.core.io.path_url import path_join
 from .plugins.postgresql_plug import (
     TableObject, ViewObject, MaterializedViewObject, FunctionObject, ProcedureObject
 )

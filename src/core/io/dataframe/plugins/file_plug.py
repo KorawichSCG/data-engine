@@ -6,7 +6,7 @@ import os
 import logging
 import pytz
 from typing import Generator, Optional
-from src.core.io.path_utils import path_join
+from src.core.io.path_url import path_join
 from src.core.utils import merge_dicts
 
 PROJ_PATH = os.environ.get('PROJ_PATH', path_join(os.path.dirname(__file__), '../../../../..'))

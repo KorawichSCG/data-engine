@@ -11,6 +11,7 @@ import string
 import random
 import importlib
 from collections import defaultdict
+from functools import wraps
 
 # __all__ = ['split_iterable', 'merge_dicts', 'hash_string', 'import_string']
 
@@ -275,3 +276,42 @@ def get_multi(mapping: dict, multi_keys: list, default=None):
         if key in mapping:
             return mapping[key]
     return mapping.get(last_key, default) if default else mapping[last_key]
+
+
+def memoized_property(func_get):
+    """
+    Return a property attribute for new-style classes that only calls its getter on the first
+    access. The result is stored and on subsequent accesses is returned, preventing the need to
+    call the getter any more.
+
+    Example::
+
+        >>> class C(object):
+        ...     load_name_count = 0
+        ...     @memoized_property
+        ...     def name(self):
+        ...         "name's docstring"
+        ...         self.load_name_count += 1
+        ...         return "the name"
+        >>> c = C()
+        >>> c.load_name_count
+        0
+        >>> c.name
+        "the name"
+        >>> c.load_name_count
+        1
+        >>> c.name
+        "the name"
+        >>> c.load_name_count
+        1
+
+    """
+    attr_name = '_{0}'.format(func_get.__name__)
+
+    @wraps(func_get)
+    def func_get_memoized(self):
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, func_get(self))
+        return getattr(self, attr_name)
+
+    return property(func_get_memoized)

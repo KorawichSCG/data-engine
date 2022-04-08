@@ -11,7 +11,7 @@ from core.engine.errors import (
 )
 from src.core.utils import merge_dicts, import_string
 from src.core.io.conf_parser import conf
-from src.core.io.path_utils import path_join
+from src.core.io.path_url import path_join
 from src.core.io.database import postgresql_obj
 from src.core.io.dataframe import pandas_obj
 from pathlib import Path
@@ -313,3 +313,19 @@ class ConfigDefaultConvert(ConfigConvert):
         pandas_obj.PandasExcelFrame,
         pandas_obj.PandasJsonFrame
     ]
+
+
+def create_metadata(conf_path: str = 'conf'):
+    """
+    Create configuration metadata for operation all configuration in `conf_path`
+    {
+        conf_path: <config_path>
+        configurations:
+            conf_name: <config-name>
+            prefix_name:
+            suffix_name:
+
+    }
+    """
+    _filter_opt_file = {'config.yaml', 'logging.yaml', 'parameters.yaml', 'rules.yaml', '.env'}
+    pass

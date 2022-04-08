@@ -3,7 +3,7 @@ import re
 import os
 import io
 import logging
-from typing import Optional
+from typing import Optional, Dict, Union, Any
 try:
     from yaml import safe_load
 except ImportError:
@@ -16,7 +16,7 @@ logger.setLevel(logging.DEBUG)
 # (\\)?(\$)(\{?([A-Z0-9_]+)\}?)
 # RE_DOTENV_VAR: re.Pattern = re.compile(r'(\\)?(\$)({?([A-Z0-9_]+)}?)', re.IGNORECASE)
 RE_DOTENV_VAR: re.Pattern = re.compile(r"""
-    (\\)?    # is it escaped with a backslash?
+    (\\)?               # is it escaped with a backslash?
     (\$)                # literal $
     (                   # collect braces with var for sub
         \{?             #   allow brace wrapping
@@ -39,7 +39,7 @@ RE_YAML: re.Pattern = re.compile(r"""
 """, re.MULTILINE | re.UNICODE | re.IGNORECASE | re.VERBOSE)
 
 # (\s|^)#.*
-RE_YAML_COMMENT: re.Pattern = re.compile(r"(\s|^)#.*", re.MULTILINE | re.UNICODE | re.IGNORECASE)
+RE_YAML_COMMENT: re.Pattern = re.compile(r"""(\s|^)#.*""", re.MULTILINE | re.UNICODE | re.IGNORECASE)
 
 # (?:^|^)\s*(?:export\s+)?(?P<name>[\w.-]+)(?:\s*=\s*?|:\s+?)(?P<value>\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)
 RE_DOTENV: re.Pattern = re.compile(r"""
@@ -63,7 +63,7 @@ RE_DOTENV: re.Pattern = re.compile(r"""
 RE_PARAM: re.Pattern = re.compile(r"""
     {{\s*                   # start double brace {{
     (?P<value>
-        [\w\s\{\}\$\@\_]+   # filter value
+        [\w\s{}$@_]+   # filter value
     )*
     \s*}}                   # end double brace }}
 """, re.VERBOSE)
@@ -73,7 +73,14 @@ class ParseConfig:
     """
     Class of parse configuration that load from `.yaml` or parse environment variable `.env`
     files or contents of files (data) and resolve any environment variables. The environment
-    variables must have format to be parsed: ${VAR_NAME} or $VAR_NAME
+    variables must have format to be parsed: `${VAR_NAME}` or `$VAR_NAME`.
+
+    E.g.::
+
+        >> conf.loads_env("PROJ_NAME='data-engine'")
+        >> conf_dict = conf.loads("project: ${PROJ_NAME}")
+        >> print(conf_dict)
+        {'project': 'data-engine'}
     """
     __version__ = '0.1'
 
@@ -84,9 +91,11 @@ class ParseConfig:
             parameter: Optional[dict] = None,
             **kwargs
     ):
-        if 'override_flag' in kwargs:
-            raise NotImplementedError("`load` does not support for argument `override_flag`")
-        return cls(path=path, parameter=parameter, **kwargs)
+        return cls(
+            path=path,
+            parameter=parameter,
+            **cls._assert_kwargs_with_yaml(kwargs)
+        )
 
     @classmethod
     def loads(
@@ -95,9 +104,11 @@ class ParseConfig:
             parameter: Optional[dict] = None,
             **kwargs
     ):
-        if 'override_flag' in kwargs:
-            raise NotImplementedError("`load` does not support for argument `override_flag`")
-        return cls(data=data, parameter=parameter, **kwargs)
+        return cls(
+            data=data,
+            parameter=parameter,
+            **cls._assert_kwargs_with_yaml(kwargs)
+        )
 
     @classmethod
     def load_env(
@@ -114,6 +125,12 @@ class ParseConfig:
             override: Optional[bool] = False
     ):
         return cls(data=data, override_flag=override, conf_type='env')
+
+    @classmethod
+    def _assert_kwargs_with_yaml(cls, kwargs):
+        if 'override_flag' in kwargs:
+            raise NotImplementedError("`load` does not support for argument `override_flag`")
+        return kwargs
 
     def __init__(
             self,
@@ -167,6 +184,7 @@ class ParseConfig:
                 self.__encoding
             ) if self.__path else self.__data
             self.__load_env(self.__prepare_env(self.__contents), override_flag)
+            self.__dict = {}
         else:
             if self.__default_sep != ':':
                 raise NotImplementedError(f"{self.__class__.__name__} does not support sep {self.__default_sep!r}")
@@ -225,7 +243,7 @@ class ParseConfig:
 
     def conf_junction(self, _conf_type: str):
         """Junction of configuration type"""
-        if os.path.isdir(self.__path):
+        if self.__path and os.path.isdir(self.__path):
             _file_name = '.env' if _conf_type == 'env' else 'config.yaml'
             self.__path = os.path.join(self.__path, _file_name)
 

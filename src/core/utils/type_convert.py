@@ -1,6 +1,6 @@
 import ast
 import re
-from typing import Union
+from typing import Union, Any, Optional, List
 from distutils.util import strtobool
 
 
@@ -17,7 +17,7 @@ def str_to_bool(content: Union[str, bool], force: bool = True) -> bool:
     return content
 
 
-def str_to_number(content: Union[str, int, float], force_int: bool = False) -> Union[int, float]:
+def str_to_number(content: Optional[Union[str, int, float]], force_int: bool = False) -> Union[int, float]:
     """
     Convert string content to integer or float type
     """
@@ -53,3 +53,14 @@ def dict_to_str(content: dict, str_pair: str = '=') -> str:
 
 def must_pop_list(dictionary, content) -> list:
     return _return_key if isinstance((_return_key := dictionary.pop(content, [])), list) else [_return_key]
+
+
+def to_list(x: Any, default: Optional[List[Any]] = None) -> List[Any]:
+    if x is None:
+        return default  # type: ignore
+    if isinstance(x, (str, bytes)):
+        return [x]
+    elif isinstance(x, list):
+        return x
+    else:
+        return list(x)

@@ -59,6 +59,14 @@ The process is mapping of catalog and node, that mean head and tail of process a
 
 So we should define parameters transfer between walking of process.
 
+Requirements
+------------
+
+1) Create/Delete/Edit data catalog for define data definition and profiling.
+2) Test data catalog connection and view sample data from that catalog config
+3) Create/Delete/Edit data pipeline
+4) Test data pipeline with sample/demo data (some raw data or manual mockup)
+
 
 Example Scenario
 --------------------

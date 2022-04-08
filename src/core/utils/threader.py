@@ -85,7 +85,8 @@ class ThreadWithControl(threading.Thread):
             return self._thread_id
 
         # no, look for it in the _active dict
-        for thread_id, thread_obj in threading._active.items():
+        # for thread_id, thread_obj in threading._active.items():
+        for thread_id, thread_obj in getattr(threading, '_active').items():
             if thread_obj is self:
                 self._thread_id = thread_id
                 return thread_id

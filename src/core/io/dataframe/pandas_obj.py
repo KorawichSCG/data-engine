@@ -4,7 +4,7 @@ import itertools
 from pathlib import Path
 from typing import Any, Dict, Union, Optional
 from src.core.utils import str_to_bool, merge_dicts, get_multi
-from src.core.io.path_utils import path_join
+from src.core.io.path_url import path_join
 from src.core.io.conf_parser import conf
 from src.core.io.dataframe.plugins.pandas_plug import (
     PandasCSVObject, PandasExcelObject, PandasJsonObject
@@ -162,8 +162,8 @@ class PandasFrame:
     """
     CONF_PATH = CONF_PATH
     CONF_DELIMITER = '/'
-    CONF_ARGS: set
-    CONF_TYPE: set
+    CONF_ARGS: set = ...
+    CONF_TYPE: set = ...
     SUB_PATH = 'files'
 
     def __init__(
@@ -296,7 +296,7 @@ class PandasCSVFrame(PandasFrame, PandasCSVObject):
 
 class PandasExcelFrame(PandasFrame, PandasExcelObject):
     """Pandas Excel DataFrame object"""
-    CONF_TYPE: set = {'xlsx', 'xls', 'odf', 'ods', 'odt'}
+    CONF_TYPE: set = {'xlsx', 'xls', 'odf', 'ods', 'odt'}  # Another extension; *.xlsm, *.xlsb
     CONF_ARGS: set = {
         'sheet_name',
         'header',

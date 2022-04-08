@@ -6,19 +6,19 @@ from psycopg.sql import SQL
 from psycopg.rows import tuple_row
 
 
-class PostgresConn:
+class PostgresConnection:
     """
     PostgresSQL connection class
     """
     __version__ = '12.0.0'
 
     def __init__(self, db_conn: Dict[str, Any]):
-        self.error_stm: str = ""
         self.db_conn: Dict[str, Any] = db_conn
         self.db_conn_conf: Dict[str, Any] = {}
         self.db_cursor_conf: Dict[str, Any] = {
             "row_factory": tuple_row
         }
+        self.error_stm: str = ""
 
     @property
     def db_name(self) -> str:
@@ -30,6 +30,7 @@ class PostgresConn:
             with psycopg.connect(connect_timeout=1, **self.db_conn):
                 return True
         except psycopg.Error as err:
+            # FIXME: change `print` to `logging`
             print(
                 f"{type(err).__module__.removesuffix('.errors')}:{type(err).__name__}: {str(err).rstrip()}"
             )
@@ -46,21 +47,36 @@ class PostgresConn:
             result_type: Optional[str] = None,
             force_type: Optional[Any] = None
     ) -> Union[pd.DataFrame, List[Any]]:
-        result_type = result_type or 'df'
-        assert result_type in {"list", "df"}
+        result_type = result_type or 'pandas'
+        assert result_type in {"list", "pandas"}
         with psycopg.connect(**self.db_conn) as conn:
             with conn.cursor() as cur:
                 cur.execute(SQL(query))
                 data = cur.fetchall()
-                if result_type != 'df':
+                if result_type != 'pandas':
                     return data
                 cols = [i[0] for i in cur.description]
                 return pd.DataFrame(data, columns=cols, dtype=force_type)
 
-    def state(self):
+    def extension(self, extension_name: str):
         """
-        SELECT * FROM pg_stat_activity;
-        SELECT * FROM pg_stat_activity;
+        SELECT * FROM pg_available_extensions WHERE name = 'pg_stat_statements';
+        SELECT * FROM pg_available_extension_versions WHERE name = 'pg_stat_statements';
+        SELECT *
+        FROM pg_available_extensions
+        WHERE
+            name = 'pg_stat_statements' and
+            installed_version is not null;
+        CREATE EXTENSION pg_stat_statements;
+        CREATE EXTENSION pg_stat_statements SCHEMA public;
+        """
+        return None
+
+    def state(self, minute: int = 5, auto_terminate: bool = False):
+        """
+        Find slow, long-running, and Blocked Queries
+        Ref: https://www.shanelynn.ie/postgresql-find-slow-long-running-and-blocked-queries/
+
         select  pid as process_id
         ,       usename as username
         ,       datname as database_name
@@ -77,7 +93,31 @@ class PostgresConn:
         WHERE name = 'pg_stat_statements' and
             installed_version is not null;
         """
-        pass
+        with psycopg.connect(**self.db_conn) as conn:
+            with conn.cursor(**self.db_cursor_conf) as cur:
+                try:
+                    cur.execute(SQL(f"""select	pid					as process_id
+                    ,		user                                    as user
+                    ,		usename                                 as username
+                    ,       client_addr                             as client_address
+                    ,		query_start
+                    ,		now() - query_start                     as query_time
+                    ,		query
+                    ,		state
+                    ,		wait_event_type
+                    ,		wait_event
+                    from {self.db_name}.pg_catalog.pg_stat_activity
+                    where (now() - query_start) > interval '{minute} minutes';"""))
+                    data = cur.fetchall()
+                    result = {"STATE": list(data)}
+                except psycopg.Error as err:
+                    result = {}
+                    # FIXME: change `print` to `logging`
+                    print(
+                        f"{type(err).__module__.removesuffix('.errors')}:{type(err).__name__}: {str(err).rstrip()}"
+                    )
+        # TODO: add terminate query that have long-time execute
+        return result
 
     def explain(
             self,
@@ -90,10 +130,10 @@ class PostgresConn:
             verbose: bool = True,
     ) -> Dict[str, list]:
         """
-        check query:
-            costs: False, analyze: True, timing: False, summary: False, buffers: False, settings: True, verbose: True
-        analysis query:
-            costs: True, analyze: True, timing: True, summary: True, buffers: True, settings: True, verbose: True
+        example:
+            (i)     check query: This params
+                            costs, timing, summary, buffers values will be False
+            (ii)    analysis query: all param values are True
         """
         for param in {costs, analyze, verbose, settings, summary, buffers}:
             assert param in {True, False}
@@ -101,23 +141,53 @@ class PostgresConn:
             with conn.cursor(**self.db_cursor_conf) as cur:
                 try:
                     cur.execute(SQL(f"""explain( format json, costs {costs}, analyze {analyze}, verbose {verbose},
-                    settings {settings}, summary {summary}, buffers {buffers}) ({query})"""))
+                    settings {settings}, summary {summary}, buffers {buffers}) ( {query} );"""))
                     data = cur.fetchone()
                     result = {"QUERY PLAN": list(data)}
                     conn.rollback()
                 except psycopg.Error as err:
                     result = {}
+                    # FIXME: change `print` to `logging`
                     print(
                         f"{type(err).__module__.removesuffix('.errors')}:{type(err).__name__}: {str(err).rstrip()}"
                     )
         return result
 
+    def create_individual_user(self):
+        """
+        create user user_name with encrypted password 'mypassword';
+        grant all privileges on database sample_db to user_name;
+        CREATE USER miriam WITH PASSWORD 'jw8s0F4' VALID UNTIL '2005-01-01';
+        CREATE USER manuel WITH PASSWORD 'jw8s0F4' CREATEDB;
+        """
+        return None
 
-class PostgresObject(PostgresConn):
+    def create_role(self):
+        """
+        CREATE ROLE username LOGIN PASSWORD 'password' NOINHERIT CREATEDB;
+        CREATE SCHEMA username AUTHORIZATION username;
+        GRANT USAGE ON SCHEMA username TO PUBLIC;
+        """
+        return None
+
+    def assign_role_to_user(self):
+        """
+
+        """
+        return None
+
+    def grant_to_user(self, policies, on):
+        """
+        GRANT SELECT, INSERT, UPDATE, DELETE ON public.Geometry_columns TO username;
+        """
+        return None
+
+
+class PostgresObject(PostgresConnection):
     """
     Postgres object
     """
-    # TODO: change way to inherit `PostgresConn` because excluded `query` and `execute` method
+    # TODO: change way to inherit `PostgresConnection` because excluded `query` and `execute` method
     OBJECT_TYPE: Optional[str] = None
     __excluded__ = {'query', 'execute'}
 
@@ -1056,29 +1126,4 @@ class ProcedureObject(PostgresObject):
         super().__init__(db_conn, schema_name, proc_name, auto_execute)
         self.mat_view_name: str = self.obj_name
         self.mat_view_name_full: str = self.obj_name_full
-        self.alive: bool = self.exists
-
-
-class OperationObject(PostgresObject):
-    """
-    Operation Object
-    """
-    OBJECT_TYPE = "operation"
-
-    def create_individual_user(self):
-        """
-
-        """
-        return None
-
-    def create_role(self):
-        """
-
-        """
-        return None
-
-    def assign_role_to_user(self):
-        """
-
-        """
-        return None
+        # self.alive: bool = self.exists

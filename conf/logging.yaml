@@ -5,7 +5,7 @@ version: 1
 disable_existing_loggers: false  # `true` will disable logging from another module
 formatters:
      defaults:
-          (): 'src.core.utils.log_parser.UTCFormatter'
+          (): 'src.core.engine.log_parser.UTCFormatter'
           format: '%(asctime)s (%(thread)05d) %(levelname)-8s|: %(message)s'
           datefmt: '%Y-%m-%d %H:%M:%S'
      access:
@@ -18,7 +18,7 @@ formatters:
           validate: "True"
 filters:
      no_console_filter:
-          (): 'src.core.utils.log_parser.NoConsoleFilter'
+          (): 'src.core.engine.log_parser.NoConsoleFilter'
 handlers:
      console:
           class: 'logging.StreamHandler'
